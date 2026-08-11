@@ -312,15 +312,23 @@ class AppStore {
   completeService(counterId) {
     const counter = this.counters.find(c => c.id === counterId);
     if (counter) {
-      counter.servedCountToday += 1;
+      // Mark current SERVING token as COMPLETED in store.tokens[]
+      const servingTok = this.tokens.find(t => t.counterId === counterId && t.status === 'SERVING');
+      if (servingTok) {
+        servingTok.status = 'COMPLETED';
+        servingTok.time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      counter.servedCountToday = (counter.servedCountToday || 0) + 1;
       counter.servingToken = 'None';
       counter.status = 'idle';
+      counter.servingCustomerDwellSec = 0;
 
       fetch('/api/tokens/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ counterId })
-      }).catch(err => console.log('MySQL Token complete error:', err));
+      }).catch(() => {});
 
       this.notify('SERVICE_COMPLETED', counter);
     }

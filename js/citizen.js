@@ -30,7 +30,7 @@ export class CitizenPortalManager {
     this.container.innerHTML = `
       <div class="citizen-portal-wrap">
         <!-- Citizen Navigation Bar -->
-        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
+        <div class="citizen-tabs-bar">
           <button class="nav-tab ${this.activeTab === 'token-kiosk' ? 'active' : ''}" data-tab="token-kiosk">
             🎟️ Virtual Smart E-Token
           </button>

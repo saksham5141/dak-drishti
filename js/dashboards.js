@@ -46,6 +46,8 @@ export class DashboardHierarchyManager {
   renderTier1() {
     const activeCounter = store.counters.find(c => c.id === this.selectedCounterId) || store.counters[0];
     const waitingTokens = store.tokens.filter(t => t.counterId === activeCounter.id && t.status === 'WAITING');
+    const completedTokens = store.tokens.filter(t => t.counterId === activeCounter.id && t.status === 'COMPLETED').slice(0, 5);
+    const servingToken = store.tokens.find(t => t.counterId === activeCounter.id && t.status === 'SERVING');
 
     this.container.innerHTML = `
       <div>
@@ -131,9 +133,7 @@ export class DashboardHierarchyManager {
                 </h3>
                 <p class="card-subtitle">Target SLA: Under ${Math.floor(activeCounter.slaThresholdSec / 60)} minutes per citizen</p>
               </div>
-              <button class="btn btn-warning btn-sm" id="btn-reassign-quick">
-                ⚡ Rebalance Queue
-              </button>
+              <button class="btn btn-warning btn-sm" id="btn-reassign-quick">⚡ Rebalance Queue</button>
             </div>
 
             <div class="queue-queue-list">
@@ -146,44 +146,58 @@ export class DashboardHierarchyManager {
                       ${activeCounter.servingToken}
                     </strong>
                     <div style="font-size: 0.74rem; color: var(--text-secondary);">
-                      Turnaround Dwell: <strong>${Math.floor(activeCounter.servingCustomerDwellSec / 60)}m ${activeCounter.servingCustomerDwellSec % 60}s</strong>
+                      Dwell: <strong>${Math.floor(activeCounter.servingCustomerDwellSec / 60)}m ${activeCounter.servingCustomerDwellSec % 60}s</strong>
                     </div>
                   </div>
                 </div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-success);">
-                  In Service
-                </div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-success);">In Service</div>
               </div>
 
               <!-- Waiting Queue List -->
               ${waitingTokens.length === 0 ? `
-                <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">
-                  No citizens currently waiting in this queue.
+                <div style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.85rem;">
+                  No citizens currently waiting.
                 </div>
               ` : waitingTokens.map((t, idx) => `
                 <div class="queue-token-item">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); width: 24px;">
-                      #${idx + 1}
-                    </span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); width: 24px;">#${idx + 1}</span>
                     <div>
                       <div style="display: flex; align-items: center; gap: 8px;">
                         <strong style="font-family: var(--font-mono); font-size: 0.95rem;">${t.id}</strong>
-                        ${t.priority ? '<span class="badge badge-amber">⚡ Senior Citizen</span>' : ''}
+                        ${t.priority ? '<span class="badge badge-amber">⚡ Priority</span>' : ''}
                       </div>
-                      <div style="font-size: 0.75rem; color: var(--text-muted);">
-                        ${t.citizenName} • Mobile: ${t.mobile}
-                      </div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);">${t.citizenName} • ${t.mobile}</div>
                     </div>
                   </div>
                   <div style="text-align: right;">
-                    <div style="font-size: 0.78rem; font-family: var(--font-mono); font-weight: 700; color: ${t.waitSec > 300 ? 'var(--color-danger)' : 'var(--text-primary)'};">
-                      Wait: ${Math.floor(t.waitSec / 60)}m ${t.waitSec % 60}s
-                    </div>
+                    <div style="font-size: 0.78rem; font-family: var(--font-mono); font-weight: 700; color: ${t.waitSec > 300 ? 'var(--color-danger)' : 'var(--text-primary)'};">Wait: ${Math.floor(t.waitSec / 60)}m ${t.waitSec % 60}s</div>
                     <div style="font-size: 0.7rem; color: var(--text-muted);">Issued: ${t.time}</div>
                   </div>
                 </div>
               `).join('')}
+
+              <!-- Recently Completed / Resolved Tokens -->
+              ${completedTokens.length > 0 ? `
+                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                  <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px;">✅ Recently Resolved</div>
+                  ${completedTokens.map(t => `
+                    <div class="queue-token-item" style="opacity: 0.75; background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2);">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1rem;">✅</span>
+                        <div>
+                          <strong style="font-family: var(--font-mono); font-size: 0.9rem; text-decoration: line-through; color: var(--text-muted);">${t.id}</strong>
+                          <div style="font-size: 0.72rem; color: var(--text-muted);">${t.citizenName}</div>
+                        </div>
+                      </div>
+                      <div style="text-align: right;">
+                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #059669; font-size: 0.7rem;">Resolved</span>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">${t.time}</div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -218,12 +232,31 @@ export class DashboardHierarchyManager {
     if (btnComplete) {
       btnComplete.addEventListener('click', () => {
         const counter = store.counters.find(c => c.id === this.selectedCounterId);
-        if (counter) {
-          counter.servedCountToday += 1;
-          counter.servingToken = 'None';
-          counter.status = 'idle';
-          store.notify('SERVICE_COMPLETED', counter);
+        if (!counter) return;
+        if (counter.servingToken === 'None' || !counter.servingToken) {
+          alert('No token is currently being served at this counter.');
+          return;
         }
+        // Mark current SERVING token as COMPLETED in store.tokens[]
+        const servingTok = store.tokens.find(t => t.counterId === this.selectedCounterId && t.status === 'SERVING');
+        if (servingTok) {
+          servingTok.status = 'COMPLETED';
+          servingTok.completedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          servingTok.time = servingTok.completedAt;
+        }
+        // Reset counter state
+        counter.servedCountToday = (counter.servedCountToday || 0) + 1;
+        counter.servingToken = 'None';
+        counter.status = 'idle';
+        counter.servingCustomerDwellSec = 0;
+        // Persist to MySQL
+        fetch('/api/tokens/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ counterId: this.selectedCounterId })
+        }).catch(() => {});
+        store.notify('SERVICE_COMPLETED', counter);
+        this.renderTier1();
       });
     }
 
