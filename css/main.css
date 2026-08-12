@@ -790,6 +790,10 @@ h1, h2, h3, h4, h5, h6 {
    DakDrishti Login Gateway & 3-Step Flow
    ========================================================================== */
 
+/* ==========================================================================
+   DakDrishti Login Gateway & 3-Step Flow (Ultra-Premium Redesign)
+   ========================================================================== */
+
 .login-gateway-container {
   display: flex;
   flex-direction: column;
@@ -797,39 +801,48 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   min-height: 100vh;
   padding: 40px 20px;
-  background: radial-gradient(circle at 10% 20%, var(--bg-tertiary) 0%, var(--bg-primary) 90.1%);
+  background: radial-gradient(circle at 50% 30%, var(--bg-tertiary) 0%, var(--bg-primary) 100%);
   position: relative;
   overflow: hidden;
 }
 
 [data-theme="dark"] .login-gateway-container {
-  background: radial-gradient(circle at 10% 20%, #0c1a2e 0%, #070d18 90.1%);
+  background: radial-gradient(circle at 50% 20%, #0f1d32 0%, #050913 100%);
 }
 
 .login-gateway-container::before {
   content: '';
   position: absolute;
-  top: -10%;
+  top: -15%;
   right: -10%;
-  width: 400px;
-  height: 400px;
+  width: 550px;
+  height: 550px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--post-red-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(211, 47, 47, 0.18) 0%, rgba(211, 47, 47, 0) 70%);
   z-index: 0;
   pointer-events: none;
+  filter: blur(40px);
+  animation: pulseGlow 8s ease-in-out infinite alternate;
 }
 
 .login-gateway-container::after {
   content: '';
   position: absolute;
-  bottom: -10%;
+  bottom: -15%;
   left: -10%;
-  width: 450px;
-  height: 450px;
+  width: 600px;
+  height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--post-gold-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 124, 0, 0.18) 0%, rgba(245, 124, 0, 0) 70%);
   z-index: 0;
   pointer-events: none;
+  filter: blur(40px);
+  animation: pulseGlow 10s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pulseGlow {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+  100% { transform: scale(1.15) translate(20px, -20px); opacity: 1; }
 }
 
 .login-brand-wrapper {
@@ -840,16 +853,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .login-brand-logo {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, var(--post-red) 0%, var(--post-red-dark) 100%);
-  border-radius: 20px;
+  width: 76px;
+  height: 76px;
+  background: linear-gradient(135deg, #d32f2f 0%, #8e0000 100%);
+  border-radius: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 10px 25px var(--post-red-glow);
-  margin-bottom: 16px;
+  box-shadow: 0 12px 30px rgba(211, 47, 47, 0.35), inset 0 1px 1px rgba(255,255,255,0.4);
+  margin-bottom: 18px;
   position: relative;
   overflow: hidden;
 }
@@ -861,21 +874,23 @@ h1, h2, h3, h4, h5, h6 {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
   transform: rotate(30deg);
   animation: shine 4s infinite linear;
 }
 
 .login-brand-wrapper h1 {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   margin-bottom: 6px;
-  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--text-primary) 60%, var(--post-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .login-brand-wrapper p {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -898,24 +913,31 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
 
 .role-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
   padding: 28px 32px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: center;
   gap: 22px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .role-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -5px rgba(0,0,0,0.3);
 }
 
 .role-card::before {
