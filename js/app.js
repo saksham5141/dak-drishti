@@ -580,26 +580,33 @@ class DakDrishtiApp {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mobile: this.tempCitizenData.mobile, otp: otpVal })
           });
-          const result = await resp.json();
 
-          if (result.success) {
-            if (errorEl) errorEl.style.display = 'none';
-            store.userToken = this.tempCitizenData;
-            store.login('customer');
-          } else {
-            submitBtn.disabled = false;
-            submitBtn.textContent = store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪';
-            if (errorEl) {
-              errorEl.innerText = '❌ ' + result.message;
-              errorEl.style.display = 'block';
+          // Check if response is valid JSON (backend is present and responding)
+          if (resp.ok) {
+            const result = await resp.json();
+            if (result.success) {
+              if (errorEl) errorEl.style.display = 'none';
+              store.userToken = this.tempCitizenData;
+              store.login('customer');
+              return;
+            } else {
+              submitBtn.disabled = false;
+              submitBtn.textContent = store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪';
+              if (errorEl) {
+                errorEl.innerText = '❌ ' + result.message;
+                errorEl.style.display = 'block';
+              }
+              return;
             }
           }
         } catch (err) {
-          console.warn('Backend API endpoint /api/verify-otp unreachable, falling back to client-side verification:', err);
-          if (errorEl) errorEl.style.display = 'none';
-          store.userToken = this.tempCitizenData;
-          store.login('customer');
+          console.warn('Backend API endpoint /api/verify-otp unreachable, proceeding with client-side login:', err);
         }
+
+        // Static host / fallback mode: completion of login
+        if (errorEl) errorEl.style.display = 'none';
+        store.userToken = this.tempCitizenData;
+        store.login('customer');
       });
     }
 
