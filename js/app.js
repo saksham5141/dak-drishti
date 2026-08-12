@@ -143,7 +143,7 @@ class DakDrishtiApp {
                 </div>
                 <div class="form-group">
                   <label for="citizen-mobile">${store.t('citizenMobile')} <span class="required-star">*</span></label>
-                  <input type="tel" id="citizen-mobile" class="form-input" placeholder="10-digit mobile number" pattern="[6-9][0-9]{9}" required title="Please enter a valid 10-digit Indian mobile number">
+                  <input type="tel" id="citizen-mobile" class="form-input" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required title="Please enter a valid 10-digit mobile number">
                 </div>
                 <button type="submit" class="btn btn-login">
                   ${store.t('enterCitizenPortal')}
@@ -516,8 +516,8 @@ class DakDrishtiApp {
         const submitBtn = citizenForm.querySelector('.btn-login');
 
         // Basic client-side mobile validation
-        if (!/^[6-9][0-9]{9}$/.test(mobile)) {
-          alert('Please enter a valid 10-digit Indian mobile number.');
+        if (!/^[0-9]{10}$/.test(mobile)) {
+          alert('Please enter a valid 10-digit mobile number.');
           return;
         }
 
