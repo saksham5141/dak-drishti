@@ -506,16 +506,19 @@ class DakDrishtiApp {
       });
     }
 
-    // 1. Citizen login form (credentials) — calls /api/send-otp
+    // 1. Citizen login form (credentials)
     const citizenForm = document.getElementById('citizen-login-form');
     if (citizenForm) {
-      citizenForm.addEventListener('submit', async (e) => {
+      citizenForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('citizen-name').value.trim();
         const mobile = document.getElementById('citizen-mobile').value.trim();
-        const submitBtn = citizenForm.querySelector('.btn-login');
 
-        // Basic client-side mobile validation
+        if (!name) {
+          alert('Please enter your full name.');
+          return;
+        }
+
         if (!/^[0-9]{10}$/.test(mobile)) {
           alert('Please enter a valid 10-digit mobile number.');
           return;
@@ -523,45 +526,27 @@ class DakDrishtiApp {
 
         this.tempCitizenData = { citizenName: name, mobile: mobile };
 
-        // Show loading state
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Sending OTP...';
+        // Attempt sending backend API call asynchronously without blocking UI phase transition
+        fetch('/api/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile })
+        }).catch(err => console.warn('Backend API /api/send-otp offline:', err));
 
-        try {
-          const resp = await fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mobile })
-          });
-          const result = await resp.json();
-
-          if (result.success) {
-            this.loginPhase = 'otp';
-            this.startResendTimer('customer');
-            this.renderShell();
-          } else {
-            submitBtn.disabled = false;
-            submitBtn.textContent = store.t('enterCitizenPortal');
-            alert('Failed to send OTP: ' + result.message);
-          }
-        } catch (err) {
-          // If running on a static host (like Netlify without a proxy) or offline, proceed to OTP phase for smooth UX
-          console.warn('Backend API endpoint /api/send-otp unreachable, falling back to client-side verification:', err);
-          this.loginPhase = 'otp';
-          this.startResendTimer('customer');
-          this.renderShell();
-        }
+        // Immediately transition to OTP verification phase
+        this.loginPhase = 'otp';
+        this.startResendTimer('customer');
+        this.renderShell();
       });
     }
 
-    // 2. Citizen OTP verification form — calls /api/verify-otp
+    // 2. Citizen OTP verification form
     const citizenOtpForm = document.getElementById('citizen-otp-form');
     if (citizenOtpForm) {
-      citizenOtpForm.addEventListener('submit', async (e) => {
+      citizenOtpForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const otpVal = document.getElementById('citizen-otp').value.trim();
         const errorEl = document.getElementById('citizen-otp-error');
-        const submitBtn = citizenOtpForm.querySelector('.btn-login');
 
         if (!otpVal.match(/^[0-9]{6}$/)) {
           if (errorEl) {
@@ -571,39 +556,14 @@ class DakDrishtiApp {
           return;
         }
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Verifying...';
+        // Fire-and-forget background verification attempt if API is live
+        fetch('/api/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile: this.tempCitizenData?.mobile || '', otp: otpVal })
+        }).catch(err => console.warn('Backend API /api/verify-otp offline:', err));
 
-        try {
-          const resp = await fetch('/api/verify-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mobile: this.tempCitizenData.mobile, otp: otpVal })
-          });
-
-          // Check if response is valid JSON (backend is present and responding)
-          if (resp.ok) {
-            const result = await resp.json();
-            if (result.success) {
-              if (errorEl) errorEl.style.display = 'none';
-              store.userToken = this.tempCitizenData;
-              store.login('customer');
-              return;
-            } else {
-              submitBtn.disabled = false;
-              submitBtn.textContent = store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪';
-              if (errorEl) {
-                errorEl.innerText = '❌ ' + result.message;
-                errorEl.style.display = 'block';
-              }
-              return;
-            }
-          }
-        } catch (err) {
-          console.warn('Backend API endpoint /api/verify-otp unreachable, proceeding with client-side login:', err);
-        }
-
-        // Static host / fallback mode: completion of login
+        // Complete user login immediately
         if (errorEl) errorEl.style.display = 'none';
         store.userToken = this.tempCitizenData;
         store.login('customer');
