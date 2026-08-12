@@ -570,32 +570,19 @@ class DakDrishtiApp {
       });
     }
 
-    // 3. Citizen Resend OTP button — re-calls /api/send-otp
+    // 3. Citizen Resend OTP button
     const citizenResendBtn = document.getElementById('citizen-resend-btn');
     if (citizenResendBtn) {
-      citizenResendBtn.addEventListener('click', async () => {
-        citizenResendBtn.disabled = true;
-        citizenResendBtn.textContent = 'Sending...';
-        try {
-          const resp = await fetch('/api/send-otp', {
+      citizenResendBtn.addEventListener('click', () => {
+        if (this.tempCitizenData?.mobile) {
+          fetch('/api/send-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mobile: this.tempCitizenData.mobile })
-          });
-          const result = await resp.json();
-          if (result.success) {
-            this.startResendTimer('customer');
-            this.renderShell();
-          } else {
-            alert('Failed to resend OTP: ' + result.message);
-            citizenResendBtn.disabled = false;
-            citizenResendBtn.textContent = 'Resend OTP 🔄';
-          }
-        } catch (err) {
-          alert('Network error. Please try again.');
-          citizenResendBtn.disabled = false;
-          citizenResendBtn.textContent = 'Resend OTP 🔄';
+          }).catch(err => console.warn('Backend API /api/send-otp offline:', err));
         }
+        this.startResendTimer('customer');
+        this.renderShell();
       });
     }
 
