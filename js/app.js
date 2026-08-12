@@ -39,6 +39,7 @@ class DakDrishtiApp {
     if (this.timerIntervals[role]) {
       clearInterval(this.timerIntervals[role]);
     }
+    const label = role === 'employee' ? 'PIN' : 'OTP';
     this.timerIntervals[role] = setInterval(() => {
       this.resendTimer[role]--;
       if (this.resendTimer[role] <= 0) {
@@ -50,10 +51,10 @@ class DakDrishtiApp {
         if (btn) {
           if (this.resendTimer[role] > 0) {
             btn.disabled = true;
-            btn.innerText = `Resend OTP (${this.resendTimer[role]}s)`;
+            btn.innerText = `Resend ${label} (${this.resendTimer[role]}s)`;
           } else {
             btn.disabled = false;
-            btn.innerText = 'Resend OTP 🔄';
+            btn.innerText = `Resend ${label} 🔄`;
           }
         }
       }
