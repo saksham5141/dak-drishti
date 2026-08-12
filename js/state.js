@@ -148,6 +148,11 @@ export const TRANSLATIONS = {
     enterCitizenPortal: "Continue to Verification ➔",
     loginOperatorConsole: "Continue to Verification ➔",
     accessAlert: "Unauthorized access is prohibited and logged.",
+    forgotPin: "Forgot Password / PIN?",
+    resetPinTitle: "Employee PIN & Password Recovery",
+    resetPinDesc: "Enter your Staff ID and registered email or mobile to receive reset instructions.",
+    registeredEmailMobile: "Registered Mobile or SecurMail ID",
+    sendResetLink: "Send Reset Token 📩",
     exitPortal: "Exit Portal 🚪",
     
     // Token generator form
@@ -199,6 +204,11 @@ export const TRANSLATIONS = {
     enterCitizenPortal: "सत्यापन के लिए आगे बढ़ें ➔",
     loginOperatorConsole: "सत्यापन के लिए आगे बढ़ें ➔",
     accessAlert: "अनधिकृत पहुंच निषिद्ध और लॉग की गई है।",
+    forgotPin: "पासवर्ड या पिन भूल गए?",
+    resetPinTitle: "कर्मचारी पिन एवं पासवर्ड रिकवरी",
+    resetPinDesc: "रीसेट निर्देश प्राप्त करने के लिए अपनी स्टाफ आईडी और पंजीकृत ईमेल या मोबाइल दर्ज करें।",
+    registeredEmailMobile: "पंजीकृत मोबाइल या SecurMail आईडी",
+    sendResetLink: "रीसेट टोकन भेजें 📩",
     exitPortal: "पोर्टल से बाहर निकलें 🚪",
     logout: "लॉगआउट 🚪",
     welcome: "स्वागत हे",

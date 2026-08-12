@@ -174,6 +174,9 @@ class DakDrishtiApp {
                 <div class="form-group">
                   <label for="employee-password">${store.t('password')} <span class="required-star">*</span></label>
                   <input type="password" id="employee-password" class="form-input" placeholder="••••••••" required>
+                  <div style="text-align: right; margin-top: 4px;">
+                    <a href="#" id="employee-forgot-pin-link" style="font-size: 0.78rem; color: var(--post-red); font-weight: 600; text-decoration: none;">${store.t('forgotPin')}</a>
+                  </div>
                 </div>
                 <button type="submit" class="btn btn-login">
                   ${store.t('loginOperatorConsole')}
@@ -186,6 +189,35 @@ class DakDrishtiApp {
           </div>
         `;
       }
+    } else if (this.loginPhase === 'forgot-pin') {
+      mainContentHtml = `
+        <div class="login-single-card-wrapper">
+          <a href="#" class="login-back-link" id="back-to-credentials">← ${store.language === 'hi' ? 'लॉगिन पर वापस जाएँ' : 'Back to Login'}</a>
+          <div class="login-card employee-card">
+            <div class="login-card-header">
+              <div class="login-card-icon">🔑</div>
+              <div class="login-card-title">
+                <h2>${store.t('resetPinTitle')}</h2>
+                <p>${store.t('resetPinDesc')}</p>
+              </div>
+            </div>
+            <form id="employee-forgot-pin-form" class="login-form">
+              <div id="forgot-pin-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
+              <div class="form-group">
+                <label for="reset-staff-id">${store.t('staffId')} <span class="required-star">*</span></label>
+                <input type="text" id="reset-staff-id" class="form-input" placeholder="e.g. ADMIN123" required>
+              </div>
+              <div class="form-group">
+                <label for="reset-contact">${store.t('registeredEmailMobile')} <span class="required-star">*</span></label>
+                <input type="text" id="reset-contact" class="form-input" placeholder="e.g. operator@indiapost.gov.in or 9876543210" required>
+              </div>
+              <button type="submit" class="btn btn-login">
+                ${store.t('sendResetLink')}
+              </button>
+            </form>
+          </div>
+        </div>
+      `;
     } else if (this.loginPhase === 'otp') {
       if (this.selectedRole === 'customer') {
         const maskedPhone = this.tempCitizenData?.mobile ? '+91 XXXXX' + this.tempCitizenData.mobile.slice(-4) : '+91 XXXXX1234';
@@ -640,6 +672,43 @@ class DakDrishtiApp {
       employeeResendBtn.addEventListener('click', () => {
         this.startResendTimer('employee');
         this.renderShell();
+      });
+    }
+
+    // 7. Employee Forgot PIN / Reset Link Click
+    const forgotPinBtn1 = document.getElementById('employee-forgot-pin-link');
+    if (forgotPinBtn1) {
+      forgotPinBtn1.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.loginPhase = 'forgot-pin';
+        this.renderShell();
+      });
+    }
+
+    // 8. Employee Forgot PIN Form Submit
+    const forgotPinForm = document.getElementById('employee-forgot-pin-form');
+    if (forgotPinForm) {
+      forgotPinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const staffId = document.getElementById('reset-staff-id').value.trim();
+        const contact = document.getElementById('reset-contact').value.trim();
+        const msgEl = document.getElementById('forgot-pin-msg');
+
+        if (staffId && contact) {
+          if (msgEl) {
+            msgEl.style.color = 'var(--post-gold)';
+            msgEl.style.background = 'rgba(245, 166, 35, 0.1)';
+            msgEl.style.borderColor = 'rgba(245, 166, 35, 0.3)';
+            msgEl.innerText = store.language === 'hi' 
+              ? `✅ रीसेट टोकन ${contact} पर भेजा गया! नए PIN के साथ लॉगिन करें।` 
+              : `✅ Reset PIN instructions dispatched to ${contact}! Check inbox and log in.`;
+            msgEl.style.display = 'block';
+          }
+          setTimeout(() => {
+            this.loginPhase = 'credentials';
+            this.renderShell();
+          }, 2200);
+        }
       });
     }
 
