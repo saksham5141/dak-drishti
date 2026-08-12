@@ -6,9 +6,12 @@ Department of Posts, Ministry of Communications, Govt. of India
 import os
 import json
 import time
+import random
 import mimetypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
+from urllib.request import urlopen, Request
+from urllib.error import URLError, HTTPError
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -55,16 +58,72 @@ def get_db():
     except Exception:
         return None
 
+# In-memory OTP store: { mobile: { otp, expiry } }
+OTP_STORE = {}
+OTP_EXPIRY_SECONDS = 600  # 10 minutes
+
+def send_otp_via_2factor(mobile: str) -> dict:
+    """Send OTP via 2factor.in (India-specific, auto-generates & sends OTP).
+    Returns {success, session_id, message}."""
+    api_key = ENV.get('TWO_FACTOR_API_KEY', '')
+    if not api_key:
+        return {"success": False, "session_id": None, "message": "2factor.in API key not configured (set TWO_FACTOR_API_KEY in .env)"}
+
+    url = f"https://2factor.in/API/V1/{api_key}/SMS/{mobile}/AUTOGEN/OTPSMS"
+    try:
+        req = Request(url, method='GET')
+        with urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+            if result.get('Status') == 'Success':
+                session_id = result.get('Details', '')
+                return {"success": True, "session_id": session_id, "message": "OTP sent successfully"}
+            else:
+                return {"success": False, "session_id": None, "message": result.get('Details', 'Unknown error')}
+    except HTTPError as e:
+        body = e.read().decode('utf-8') if hasattr(e, 'read') else ''
+        return {"success": False, "session_id": None, "message": f"HTTP {e.code}: {body or e.reason}"}
+    except URLError as e:
+        return {"success": False, "session_id": None, "message": f"Network error: {e.reason}"}
+    except Exception as e:
+        return {"success": False, "session_id": None, "message": str(e)}
+
+
+def verify_otp_via_2factor(session_id: str, otp: str) -> dict:
+    """Verify OTP against a 2factor.in session. Returns {success, message}."""
+    api_key = ENV.get('TWO_FACTOR_API_KEY', '')
+    if not api_key:
+        return {"success": False, "message": "2factor.in API key not configured"}
+
+    url = f"https://2factor.in/API/V1/{api_key}/SMS/VERIFY/{session_id}/{otp}"
+    try:
+        req = Request(url, method='GET')
+        with urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+            if result.get('Status') == 'Success' and result.get('Details') == 'OTP Matched':
+                return {"success": True, "message": "OTP verified successfully"}
+            else:
+                return {"success": False, "message": result.get('Details', 'OTP did not match')}
+    except HTTPError as e:
+        body = e.read().decode('utf-8') if hasattr(e, 'read') else ''
+        return {"success": False, "message": f"HTTP {e.code}: {body or e.reason}"}
+    except URLError as e:
+        return {"success": False, "message": f"Network error: {e.reason}"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
+
+
 BACKUP_STORE = {
     "counters": [
-        {"id": 1, "code": "C-01", "name": "Counter 1 - Speed Post & Domestic Mail", "category": "mail", "service": "Speed Post / Domestic Mail Booking", "operator": "Rameshwar Dayal (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedToday": 0, "slaSec": 420},
-        {"id": 2, "code": "C-02", "name": "Counter 2 - Express Parcel & COD", "category": "parcel", "service": "Business Parcel, COD & Bulk Mails", "operator": "Priyanka Sharma (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedToday": 0, "slaSec": 480},
-        {"id": 3, "code": "C-03", "name": "Counter 3 - POSB Banking & IPPB", "category": "banking", "service": "Savings Bank, RD, TD, SSA, IPPB & Pension", "operator": "Virender Nath (Sr. PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedToday": 0, "slaSec": 600},
-        {"id": 4, "code": "C-04", "name": "Counter 4 - Aadhaar, PLI & Citizen Services", "category": "citizen", "service": "Aadhaar Enrolment/Update, PLI/RPLI, Jeevan Pramaan", "operator": "Anita Kumari (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedToday": 0, "slaSec": 600}
+        {"id": 1, "code": "C-01", "name": "Counter 1 - Speed Post & Domestic Mail", "nameHi": "काउंटर 1 - स्पीड पोस्ट एवं डाक सेवा", "category": "mail", "service": "Speed Post / Domestic Mail Booking", "operatorName": "Rameshwar Dayal (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedCountToday": 0, "slaThresholdSec": 420},
+        {"id": 2, "code": "C-02", "name": "Counter 2 - Express Parcel & COD", "nameHi": "काउंटर 2 - पार्सल एवं ई-कॉमर्स बुकिंग", "category": "parcel", "service": "Business Parcel, COD & Bulk Mails", "operatorName": "Priyanka Sharma (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedCountToday": 0, "slaThresholdSec": 480},
+        {"id": 3, "code": "C-03", "name": "Counter 3 - POSB Banking & IPPB", "nameHi": "काउंटर 3 - डाकघर बचत बैंक एवं IPPB", "category": "banking", "service": "Savings Bank, RD, TD, SSA, IPPB & Pension", "operatorName": "Virender Nath (Sr. PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedCountToday": 0, "slaThresholdSec": 600},
+        {"id": 4, "code": "C-04", "name": "Counter 4 - Aadhaar, PLI & Citizen Services", "nameHi": "काउंटर 4 - आधार, बीमा एवं नागरिक सेवाएं", "category": "citizen", "service": "Aadhaar Enrolment/Update, PLI/RPLI, Jeevan Pramaan", "operatorName": "Anita Kumari (PA)", "operatorPresent": True, "status": "idle", "servingToken": "None", "queueCount": 0, "dwellSec": 0, "servedCountToday": 0, "slaThresholdSec": 600}
     ],
     "tokens": [],
     "alerts": [
-        {"id": 1, "severity": "info", "title": "Fresh Post Office Shift Initiated", "description": "All 4 service counters reset and ready for citizen intake.", "timestamp": time.strftime('%I:%M %p'), "counterId": None, "suggestedAction": "Operators on duty."}
+        {"id": 1, "severity": "info", "title": "System Online — Fresh Shift Ready", "description": "All 4 service counters are active and ready for citizen intake. Operators on duty.", "timestamp": time.strftime('%I:%M %p'), "counterId": None, "suggestedAction": "Standard monitoring active."}
     ]
 }
 
@@ -225,6 +284,52 @@ class RobustDakHandler(BaseHTTPRequestHandler):
         except Exception:
             data = {}
 
+        if path == '/api/send-otp':
+            mobile = data.get('mobile', '').strip()
+            if not mobile or not mobile.isdigit() or len(mobile) != 10:
+                self.send_json_response(400, {"success": False, "message": "Invalid mobile number. Must be 10 digits."})
+                return
+
+            result = send_otp_via_2factor(mobile)
+
+            if result['success']:
+                # Store the session_id returned by 2factor.in
+                OTP_STORE[mobile] = {
+                    'session_id': result['session_id'],
+                    'expiry': time.time() + OTP_EXPIRY_SECONDS
+                }
+                print(f"[OTP] Sent to +91-{mobile}, session: {result['session_id']}")
+                self.send_json_response(200, {"success": True, "message": f"OTP sent to +91 XXXXX{mobile[-4:]}"})
+            else:
+                print(f"[OTP ERROR] {result['message']}")
+                self.send_json_response(500, {"success": False, "message": result['message']})
+            return
+
+        if path == '/api/verify-otp':
+            mobile = data.get('mobile', '').strip()
+            otp_input = data.get('otp', '').strip()
+
+            entry = OTP_STORE.get(mobile)
+            if not entry:
+                self.send_json_response(400, {"success": False, "message": "No OTP found for this number. Please request a new OTP."})
+                return
+
+            if time.time() > entry['expiry']:
+                OTP_STORE.pop(mobile, None)
+                self.send_json_response(400, {"success": False, "message": "OTP has expired. Please request a new one."})
+                return
+
+            # Verify via 2factor.in
+            verify_result = verify_otp_via_2factor(entry['session_id'], otp_input)
+
+            if verify_result['success']:
+                OTP_STORE.pop(mobile, None)  # One-time use
+                print(f"[OTP] Verified for +91-{mobile}")
+                self.send_json_response(200, {"success": True, "message": "OTP verified successfully"})
+            else:
+                self.send_json_response(400, {"success": False, "message": verify_result['message']})
+            return
+
         if path == '/api/tokens':
             category = data.get('category', 'mail')
             prefixes = {'mail': 'A', 'parcel': 'B', 'banking': 'C', 'citizen': 'D'}
@@ -246,6 +351,11 @@ class RobustDakHandler(BaseHTTPRequestHandler):
                 "time": time.strftime('%I:%M %p')
             }
             BACKUP_STORE["tokens"].insert(0, token_record)
+            
+            # Increment queue count in backup store counter
+            for c in BACKUP_STORE["counters"]:
+                if c["id"] == counter_id:
+                    c["queueCount"] += 1
 
             conn = get_db()
             if conn:
@@ -268,6 +378,28 @@ class RobustDakHandler(BaseHTTPRequestHandler):
             counter_id = int(data.get('counterId', 1))
             token_id = data.get('tokenId')
 
+            # Update in-memory backup store
+            # Mark previous serving token at this counter as completed
+            for t in BACKUP_STORE["tokens"]:
+                if t.get("counterId") == counter_id and t.get("status") == "SERVING":
+                    t["status"] = "COMPLETED"
+            # Set the called token as serving
+            if token_id:
+                for t in BACKUP_STORE["tokens"]:
+                    if t.get("id") == token_id:
+                        t["status"] = "SERVING"
+                        t["counterId"] = counter_id
+            # Update counter status
+            for c in BACKUP_STORE["counters"]:
+                if c["id"] == counter_id:
+                    if token_id:
+                        c["servingToken"] = token_id
+                        c["status"] = "serving"
+                        c["queueCount"] = max(0, c["queueCount"] - 1)
+                    else:
+                        c["servingToken"] = "None"
+                        c["status"] = "idle"
+
             conn = get_db()
             if conn:
                 try:
@@ -288,6 +420,17 @@ class RobustDakHandler(BaseHTTPRequestHandler):
 
         elif path == '/api/tokens/complete':
             counter_id = int(data.get('counterId', 1))
+            
+            # Update in-memory backup store
+            for t in BACKUP_STORE["tokens"]:
+                if t.get("counterId") == counter_id and t.get("status") == "SERVING":
+                    t["status"] = "COMPLETED"
+            for c in BACKUP_STORE["counters"]:
+                if c["id"] == counter_id:
+                    c["servingToken"] = "None"
+                    c["status"] = "idle"
+                    c["servedCountToday"] += 1
+
             conn = get_db()
             if conn:
                 try:
@@ -300,6 +443,41 @@ class RobustDakHandler(BaseHTTPRequestHandler):
                     conn.close()
 
             self.send_json_response(200, {"success": True, "counterId": counter_id, "status": "completed"})
+            return
+
+        elif path == '/api/counters/rebalance':
+            counter_id = int(data.get('counterId', 1))
+            category = data.get('category', 'banking')
+            
+            services = {
+                'banking': ('banking', 'POSB Banking & Financial Overflow Desk', 'काउंटर 3 - डाकघर बचत बैंक एवं IPPB'),
+                'mail': ('mail', 'Speed Post & Express Parcel Overflow Desk', 'काउंटर 1 - स्पीड पोस्ट एवं डाक सेवा'),
+                'citizen': ('citizen', 'Aadhaar & Citizen Services Overflow Desk', 'काउंटर 4 - आधार, बीमा एवं नागरिक सेवाएं')
+            }
+            cat_code, service_name, name_hi = services.get(category, ('banking', 'POSB Banking & Financial Overflow Desk', 'काउंटर 3 - डाकघर बचत बैंक एवं IPPB'))
+            
+            # Update backup store
+            for c in BACKUP_STORE["counters"]:
+                if c["id"] == counter_id:
+                    c["category"] = cat_code
+                    c["service"] = service_name
+                    c["nameHi"] = name_hi
+                    
+            conn = get_db()
+            if conn:
+                try:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            UPDATE counters 
+                            SET category_code = %s, counter_name = %s, counter_name_hi = %s
+                            WHERE counter_id = %s
+                        """, (cat_code, service_name, name_hi, counter_id))
+                except Exception as ex:
+                    print("[MySQL Counter Rebalance Exception]", ex)
+                finally:
+                    conn.close()
+                    
+            self.send_json_response(200, {"success": True, "counterId": counter_id, "category": cat_code})
             return
 
         elif path == '/api/alerts':
@@ -354,7 +532,7 @@ class RobustDakHandler(BaseHTTPRequestHandler):
                 c["servingToken"] = "None"
                 c["queueCount"] = 0
                 c["dwellSec"] = 0
-                c["servedToday"] = 0
+                c["servedCountToday"] = 0
                 c["operatorPresent"] = True
 
             conn = get_db()

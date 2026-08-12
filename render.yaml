@@ -16,3 +16,5 @@ services:
         sync: false
       - key: DB_NAME
         value: dak_drishti_db
+      - key: TWO_FACTOR_API_KEY
+        sync: false

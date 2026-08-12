@@ -93,46 +93,46 @@ export class CitizenPortalManager {
           <div class="card-header">
             <div>
               <h3 class="card-title">
-                <span style="color: var(--post-red);">🎟️</span> Instant E-Token Generator
+                <span style="color: var(--post-red);">🎟️</span> ${store.t('instantTokenGen')}
               </h3>
-              <p class="card-subtitle">Get queue pass on your mobile with live wait time and counter guidance</p>
+              <p class="card-subtitle">${store.t('tokenGenDesc')}</p>
             </div>
-            <span class="badge badge-green">Live Kiosk</span>
+            <span class="badge badge-green">${store.t('liveKiosk')}</span>
           </div>
 
           <form id="token-gen-form">
             <div class="form-group">
-              <label class="form-label">Service Category Required *</label>
+              <label class="form-label">${store.t('serviceCategoryReq')}</label>
               <select id="token-category" class="form-select" required>
-                <option value="mail">Speed Post, Registered Post & Letters</option>
-                <option value="parcel">Express Parcel & E-Commerce COD</option>
-                <option value="banking">POSB Savings Bank, TD, RD, IPPB & Pension</option>
-                <option value="citizen">Aadhaar Update, PLI Insurance & Jeevan Pramaan</option>
+                <option value="mail">${store.t('mailOption')}</option>
+                <option value="parcel">${store.t('parcelOption')}</option>
+                <option value="banking">${store.t('bankingOption')}</option>
+                <option value="citizen">${store.t('citizenOption')}</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Citizen Name</label>
+              <label class="form-label">${store.t('citizenNameLabel')}</label>
               <input type="text" id="token-name" class="form-input" placeholder="e.g. Sumanth Verma" value="Sumanth Verma" required />
             </div>
 
             <div class="form-group">
-              <label class="form-label">Mobile Number (for live SMS updates)</label>
+              <label class="form-label">${store.t('mobileLabel')}</label>
               <input type="tel" id="token-mobile" class="form-input" placeholder="e.g. 9876543210" value="9876543210" pattern="[0-9]{10}" required />
             </div>
 
             <div class="form-group" style="background: rgba(245, 124, 0, 0.08); border: 1px solid rgba(245, 124, 0, 0.25); border-radius: var(--radius-md); padding: 12px;">
               <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-primary);">
                 <input type="checkbox" id="token-priority" style="width: 18px; height: 18px; accent-color: var(--post-gold);" />
-                <span>⚡ Senior Citizen (60+ yrs) / Divyangjan (PwD) / Expectant Mother (Priority Routing)</span>
+                <span>${store.t('priorityLabel')}</span>
               </label>
               <p style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; margin-left: 26px;">
-                Priority tokens are automatically fast-tracked by AI load rebalancer in adherence to DoP Citizen Charter.
+                ${store.t('priorityDesc')}
               </p>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
-              🎫 Generate E-Token Pass
+              ${store.t('generateTokenPass')}
             </button>
           </form>
         </div>
@@ -151,9 +151,9 @@ export class CitizenPortalManager {
       return `
         <div style="text-align: center; padding: 48px 20px;">
           <div style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;">🎫</div>
-          <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">No Active E-Token</h4>
+          <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">${store.t('noActiveToken')}</h4>
           <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 320px; margin: 0 auto;">
-            Fill the form on the left to generate your virtual token pass. You'll receive live audio and visual notifications when your turn arrives.
+            ${store.t('noActiveTokenDesc')}
           </p>
         </div>
       `;
@@ -167,10 +167,10 @@ export class CitizenPortalManager {
       <div class="token-pass-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 0.75rem; font-weight: 700; color: var(--post-red); text-transform: uppercase;">
-            Department of Posts • भारत डाक
+            ${store.t('dopBanner')}
           </span>
           <span class="badge ${token.priority ? 'badge-amber' : 'badge-blue'}">
-            ${token.priority ? '⚡ PRIORITY PASS' : 'STANDARD TOKEN'}
+            ${token.priority ? store.t('priorityPass') : store.t('standardToken')}
           </span>
         </div>
 
@@ -208,25 +208,25 @@ export class CitizenPortalManager {
 
         <table class="token-details-table">
           <tr>
-            <td>Assigned Counter</td>
-            <td style="color: var(--post-red); font-size: 0.95rem;">${assignedCounter.code} (${assignedCounter.nameHi})</td>
+            <td>${store.t('assignedCounter')}</td>
+            <td style="color: var(--post-red); font-size: 0.95rem;">${assignedCounter.code} (${store.language === 'hi' ? assignedCounter.nameHi : assignedCounter.service})</td>
           </tr>
           <tr>
-            <td>Queue Position</td>
-            <td><strong>${waitingBefore === 0 ? 'Next in Turn (Proceed to counter)' : `${waitingBefore} citizens ahead`}</strong></td>
+            <td>${store.t('queuePosition')}</td>
+            <td><strong>${waitingBefore === 0 ? store.t('nextInTurn') : `${waitingBefore} ${store.t('citizensAhead')}`}</strong></td>
           </tr>
           <tr>
-            <td>Estimated Wait Time</td>
-            <td style="color: var(--color-success); font-family: var(--font-mono); font-size: 0.9rem;">~ ${estWaitMins} Minutes</td>
+            <td>${store.t('estWaitTime')}</td>
+            <td style="color: var(--color-success); font-family: var(--font-mono); font-size: 0.9rem;">~ ${estWaitMins} ${store.t('minutesText')}</td>
           </tr>
           <tr>
-            <td>Current Token Serving</td>
+            <td>${store.t('currServing')}</td>
             <td style="font-family: var(--font-mono);">${assignedCounter.servingToken}</td>
           </tr>
         </table>
 
         <div style="margin-top: 16px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius-md); font-size: 0.78rem; color: #059669; font-weight: 600;">
-          📢 Multi-lingual voice announcement will call "${token.id}" when ready.
+          📢 ${store.t('voiceAnnounceAlert').replace('ready', `"${token.id}"`)}
         </div>
       </div>
     `;

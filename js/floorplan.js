@@ -15,7 +15,86 @@ export class DigitalTwinVisualizer {
     this.render();
     store.subscribe(() => {
       this.updateCountersState();
+      this.updateKpiCards();
     });
+  }
+
+  getKpiCards() {
+    const totalQueue = store.counters.reduce((s, c) => s + c.queueCount, 0);
+    const totalServed = store.counters.reduce((s, c) => s + c.servedCountToday, 0);
+    const avgTatMins = (store.counters.reduce((s, c) => s + c.avgServiceTimeSec, 0) / store.counters.length / 60).toFixed(1);
+    const slaOk = store.counters.filter(c => c.queueCount <= 6).length;
+    const slaScore = ((slaOk / store.counters.length) * 100).toFixed(0);
+
+    return `
+      <div id="twin-kpi-row" class="grid-cols-4" style="margin-bottom: 20px;">
+        <div class="kpi-card" style="--kpi-color: var(--post-red); --kpi-bg: rgba(211,47,47,0.1);">
+          <div class="kpi-header">
+            <span class="kpi-label">Total Queue Depth</span>
+            <div class="kpi-icon" style="background: var(--kpi-bg); color: var(--kpi-color);">👥</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="kpi-total-queue">${totalQueue}</span>
+            <span class="kpi-unit">Citizens</span>
+          </div>
+          <div class="kpi-trend ${totalQueue > 20 ? 'trend-up' : 'trend-stable'}">
+            ${totalQueue > 20 ? '⚠️ High Load' : '✅ Normal Load'}
+          </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #10B981; --kpi-bg: rgba(16,185,129,0.1);">
+          <div class="kpi-header">
+            <span class="kpi-label">Tokens Served Today</span>
+            <div class="kpi-icon" style="background: var(--kpi-bg); color: var(--kpi-color);">🎫</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="kpi-total-served">${totalServed}</span>
+            <span class="kpi-unit">Tokens</span>
+          </div>
+          <div class="kpi-trend trend-down">↑ Active Shift Progress</div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #F59E0B; --kpi-bg: rgba(245,158,11,0.1);">
+          <div class="kpi-header">
+            <span class="kpi-label">Avg. Service Time</span>
+            <div class="kpi-icon" style="background: var(--kpi-bg); color: var(--kpi-color);">⏱️</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="kpi-avg-tat">${avgTatMins}</span>
+            <span class="kpi-unit">Minutes</span>
+          </div>
+          <div class="kpi-trend trend-stable">Target: &lt; 7.0 Mins</div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #8B5CF6; --kpi-bg: rgba(139,92,246,0.1);">
+          <div class="kpi-header">
+            <span class="kpi-label">SLA Compliance</span>
+            <div class="kpi-icon" style="background: var(--kpi-bg); color: var(--kpi-color);">📊</div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="kpi-sla-score">${slaScore}%</span>
+            <span class="kpi-unit">Score</span>
+          </div>
+          <div class="kpi-trend ${parseInt(slaScore) >= 90 ? 'trend-down' : 'trend-up'}">
+            ${slaOk}/${store.counters.length} Counters Within SLA
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  updateKpiCards() {
+    const totalQueue = store.counters.reduce((s, c) => s + c.queueCount, 0);
+    const totalServed = store.counters.reduce((s, c) => s + c.servedCountToday, 0);
+    const avgTatMins = (store.counters.reduce((s, c) => s + c.avgServiceTimeSec, 0) / store.counters.length / 60).toFixed(1);
+    const slaOk = store.counters.filter(c => c.queueCount <= 6).length;
+    const slaScore = ((slaOk / store.counters.length) * 100).toFixed(0);
+
+    const el = (id) => document.getElementById(id);
+    if (el('kpi-total-queue')) el('kpi-total-queue').innerText = totalQueue;
+    if (el('kpi-total-served')) el('kpi-total-served').innerText = totalServed;
+    if (el('kpi-avg-tat')) el('kpi-avg-tat').innerText = avgTatMins;
+    if (el('kpi-sla-score')) el('kpi-sla-score').innerText = slaScore + '%';
   }
 
   render() {
@@ -38,6 +117,8 @@ export class DigitalTwinVisualizer {
           </span>
         </div>
       </div>
+
+      ${this.getKpiCards()}
 
       <div class="twin-stage">
         <!-- Top Backoffice Area (Sorting, Strong Room, SPM Cabin) -->
@@ -120,21 +201,14 @@ export class DigitalTwinVisualizer {
               <span class="badge badge-blue">Capacity: 30</span>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">
-              Seated Citizens: <strong>14 persons</strong><br/>
-              Average Lobby Dwell: <strong>6.4 mins</strong>
+              Seated Citizens: <strong>0 persons</strong><br/>
+              Average Lobby Dwell: <strong>0.0 mins</strong>
             </div>
             <div class="avatar-cluster">
-              <div class="person-avatar" title="Citizen A">C1</div>
-              <div class="person-avatar" title="Citizen B">C2</div>
-              <div class="person-avatar priority" title="Senior Citizen (Priority)">SC</div>
-              <div class="person-avatar" title="Citizen D">C4</div>
-              <div class="person-avatar" title="Citizen E">C5</div>
-              <div class="person-avatar priority" title="Senior Citizen (Priority)">SC</div>
-              <div class="person-avatar" title="Citizen G">C7</div>
-              <div class="person-avatar" title="Citizen H">C8</div>
+              <!-- Populated dynamically as citizens arrive -->
             </div>
             <div style="margin-top: 10px; padding: 6px; background: #0B192C; border-radius: 4px; color: #FFB74D; font-family: var(--font-mono); font-size: 0.7rem; text-align: center;">
-              📺 DIGITAL DISPLAY BOARD: C-312 CALLING
+              📺 DIGITAL DISPLAY BOARD: READY — AWAITING TOKENS
             </div>
           </div>
         </div>
@@ -149,7 +223,7 @@ export class DigitalTwinVisualizer {
             </div>
           </div>
           <div style="font-size: 0.78rem; font-weight: 700; color: var(--color-success); font-family: var(--font-mono);">
-            INFLOW: 2.8 CITIZENS / MIN
+            INFLOW: 0.0 CITIZENS / MIN
           </div>
         </div>
       </div>
@@ -160,6 +234,7 @@ export class DigitalTwinVisualizer {
 
     this.attachEvents();
     this.updateCountersState();
+    this.updateKpiCards();
   }
 
   updateCountersState() {

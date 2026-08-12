@@ -5,6 +5,17 @@
 
 import { store } from './state.js';
 
+const HOURLY_SLOTS = [
+  { time: '09:00', vol: 24, label: 'Opening', peak: false },
+  { time: '10:00', vol: 52, label: 'Mails Surge', peak: false },
+  { time: '11:00', vol: 88, label: 'High Rush', peak: true },
+  { time: '12:00', vol: 94, label: 'Peak Rush ⚡', peak: true },
+  { time: '13:00', vol: 68, label: 'Post-Peak', peak: false },
+  { time: '14:00', vol: 78, label: 'Aadhaar Surge', peak: false },
+  { time: '15:00', vol: 64, label: 'Banking Flow', peak: false },
+  { time: '16:00', vol: 42, label: 'Closing Bay', peak: false }
+];
+
 export class AnalyticsReportManager {
   constructor(containerElement) {
     this.container = containerElement;
@@ -16,68 +27,161 @@ export class AnalyticsReportManager {
   }
 
   render() {
+    const totalServed = store.counters.reduce((s, c) => s + c.servedCountToday, 0);
+    const alertCount = store.alerts.length;
+
     this.container.innerHTML = `
-      <div>
-        <div class="card-header" style="margin-bottom: 20px;">
+      <div class="animate-fade-in">
+        <!-- Page Header -->
+        <div class="card-header" style="margin-bottom: 24px;">
           <div>
             <h3 class="card-title" style="font-size: 1.25rem;">
-              <span>📈</span> Industry 4.0 Predictive Analytics & Performance Reports
+              <span>📈</span> Industry 4.0 Predictive Analytics &amp; Performance Reports
             </h3>
-            <p class="card-subtitle">AI Footfall Forecasting, Anomaly Tracking & Automated Compliance Audits</p>
+            <p class="card-subtitle">AI Footfall Forecasting, Anomaly Detection &amp; Automated Compliance Audit Reports</p>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button id="btn-export-csv" class="btn btn-secondary btn-sm">
-              📥 Export CSV Data
-            </button>
-            <button id="btn-export-pdf" class="btn btn-primary btn-sm">
-              📄 Generate Audit PDF / Print
-            </button>
+            <button id="btn-export-csv" class="btn btn-secondary btn-sm">📥 Export CSV</button>
+            <button id="btn-export-pdf" class="btn btn-primary btn-sm">📄 Audit PDF / Print</button>
           </div>
         </div>
 
-        <!-- Predictive Rush Heatmap Bars -->
+        <!-- Live Analytics KPI Row -->
+        <div class="grid-cols-4" style="margin-bottom: 24px;">
+          <div class="kpi-card" style="--kpi-color: var(--post-red);">
+            <div class="kpi-header">
+              <span class="kpi-label">Shift Transactions</span>
+              <div class="kpi-icon">🎫</div>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">${totalServed}</span>
+              <span class="kpi-unit">Today</span>
+            </div>
+            <div class="kpi-trend trend-down">↑ Productivity On Track</div>
+          </div>
+
+          <div class="kpi-card" style="--kpi-color: #10B981;">
+            <div class="kpi-header">
+              <span class="kpi-label">Avg Citizen Wait Time</span>
+              <div class="kpi-icon" style="background: rgba(16,185,129,0.1); color: #10B981;">⏱️</div>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">5.2</span>
+              <span class="kpi-unit">Minutes</span>
+            </div>
+            <div class="kpi-trend trend-down">↓ 0.8m vs Last Shift</div>
+          </div>
+
+          <div class="kpi-card" style="--kpi-color: #F59E0B;">
+            <div class="kpi-header">
+              <span class="kpi-label">AI Anomalies Detected</span>
+              <div class="kpi-icon" style="background: rgba(245,158,11,0.1); color: #F59E0B;">🤖</div>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">${alertCount}</span>
+              <span class="kpi-unit">Events</span>
+            </div>
+            <div class="kpi-trend trend-stable">Live Edge Monitoring Active</div>
+          </div>
+
+          <div class="kpi-card" style="--kpi-color: #8B5CF6;">
+            <div class="kpi-header">
+              <span class="kpi-label">Citizen Satisfaction (CSAT)</span>
+              <div class="kpi-icon" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">⭐</div>
+            </div>
+            <div class="kpi-value-row">
+              <span class="kpi-value">4.7</span>
+              <span class="kpi-unit">/ 5.0</span>
+            </div>
+            <div class="kpi-trend trend-down">↑ 0.2 pts vs Last Month</div>
+          </div>
+        </div>
+
+        <!-- AI Hourly Footfall Forecast Bar Chart -->
         <div class="card" style="margin-bottom: 24px;">
           <div class="card-header">
             <div>
-              <h4 class="card-title"><span>🤖</span> AI Hourly Customer Footfall Forecast (Next 8 Hours)</h4>
-              <p class="card-subtitle">Trained on historical DoP transaction logs, day-of-week patterns and pension dates</p>
+              <h4 class="card-title"><span>🤖</span> AI Hourly Customer Footfall Forecast (Today's Shift)</h4>
+              <p class="card-subtitle">ML model trained on 3 years of DoP transaction logs, day-of-week patterns &amp; pension disbursement calendar</p>
             </div>
-            <span class="badge badge-amber">⚡ Peak Rush Expected at 11:30 - 13:00</span>
+            <span class="badge badge-amber">⚡ Peak Rush: 11:30 AM – 1:00 PM</span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-top: 14px; text-align: center;">
-            ${[
-              { time: '09:00', vol: 24, label: 'Opening', peak: false },
-              { time: '10:00', vol: 52, label: 'Mails Surge', peak: false },
-              { time: '11:00', vol: 88, label: 'High Rush', peak: true },
-              { time: '12:00', vol: 94, label: 'Peak Rush', peak: true },
-              { time: '13:00', vol: 68, label: 'Moderate', peak: false },
-              { time: '14:00', vol: 78, label: 'Aadhaar Surge', peak: false },
-              { time: '15:00', vol: 64, label: 'Banking Flow', peak: false },
-              { time: '16:00', vol: 42, label: 'Closing Bay', peak: false }
-            ].map(slot => `
-              <div style="background: var(--bg-tertiary); padding: 12px 8px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; height: 160px;">
-                <div style="font-size: 0.76rem; font-weight: 700; font-family: var(--font-mono);">${slot.time}</div>
-                <div style="display: flex; align-items: flex-end; justify-content: center; height: 80px;">
-                  <div style="width: 24px; height: ${slot.vol}%; background: ${slot.peak ? 'var(--post-red)' : 'var(--post-gold)'}; border-radius: 4px;"></div>
+          <div class="analytics-bar-chart">
+            ${HOURLY_SLOTS.map(slot => `
+              <div class="bar-col">
+                <div class="bar-value-label">${slot.vol}</div>
+                <div class="bar-wrapper">
+                  <div class="bar-fill ${slot.peak ? 'bar-peak' : 'bar-normal'}" style="height: ${slot.vol}%;"></div>
                 </div>
-                <div>
-                  <div style="font-size: 0.8rem; font-weight: 800;">${slot.vol}</div>
-                  <div style="font-size: 0.65rem; color: var(--text-muted);">${slot.label}</div>
-                </div>
+                <div class="bar-time-label">${slot.time}</div>
+                <div class="bar-desc-label">${slot.label}</div>
               </div>
             `).join('')}
           </div>
         </div>
 
-        <!-- Comprehensive Daily Performance Audit Table -->
+        <!-- Service Mix + SLA Breakdown -->
+        <div class="grid-cols-2" style="margin-bottom: 24px;">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title"><span>🥧</span> Service Category Volume Breakdown</h4>
+              <span class="badge badge-blue">Today's Shift</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+              ${[
+                { label: 'Speed Post & Domestic Mail', pct: 42, color: 'var(--post-red)', count: '8,420 items', icon: '📨' },
+                { label: 'POSB Banking & IPPB Transactions', pct: 34, color: '#3B82F6', count: '6,810 txns', icon: '💰' },
+                { label: 'Express Parcel & E-Commerce COD', pct: 14, color: '#F59E0B', count: '2,800 parcels', icon: '📦' },
+                { label: 'Aadhaar & Citizen Services', pct: 10, color: '#10B981', count: '2,000 services', icon: '🆔' }
+              ].map(item => `
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.84rem;">
+                    <span>${item.icon} <strong>${item.label}</strong></span>
+                    <span style="font-family: var(--font-mono); font-weight: 700; color: ${item.color};">${item.pct}%&nbsp;(${item.count})</span>
+                  </div>
+                  <div class="meter-track" style="height: 8px;">
+                    <div class="meter-fill" style="width: ${item.pct}%; background: ${item.color};"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title"><span>🎯</span> Counter-wise SLA Compliance</h4>
+              <span class="badge badge-green">Live Data</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+              ${store.counters.map(c => {
+                const slaScore = c.queueCount > 6 ? 82.4 : c.queueCount > 3 ? 92.1 : 97.5;
+                const slaColor = slaScore >= 95 ? '#10B981' : slaScore >= 90 ? '#F59E0B' : '#EF4444';
+                const svcShort = c.service.length > 32 ? c.service.substring(0, 32) + '…' : c.service;
+                return `
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.84rem;">
+                      <span><strong>${c.code}</strong>&nbsp;— ${svcShort}</span>
+                      <span style="font-family: var(--font-mono); font-weight: 700; color: ${slaColor};">${slaScore}%</span>
+                    </div>
+                    <div class="meter-track" style="height: 8px;">
+                      <div class="meter-fill" style="width: ${slaScore}%; background: ${slaColor};"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Audit Table -->
         <div class="card">
           <div class="card-header">
             <div>
-              <h4 class="card-title"><span>📋</span> Daily Counter Performance & SLA Audit Log</h4>
-              <p class="card-subtitle">Connaught Place HPO • Shift Date: ${new Date().toLocaleDateString()}</p>
+              <h4 class="card-title"><span>📋</span> Daily Counter Performance &amp; SLA Audit Log</h4>
+              <p class="card-subtitle">Connaught Place HPO • ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
-            <span class="badge badge-green">Audit Verified</span>
+            <span class="badge badge-green">Audit Verified ✓</span>
           </div>
 
           <div class="table-responsive">
@@ -88,7 +192,7 @@ export class AnalyticsReportManager {
                   <th>Service Category</th>
                   <th>Assigned Postal Assistant</th>
                   <th>Tokens Served</th>
-                  <th>Average TAT</th>
+                  <th>Avg TAT</th>
                   <th>SLA Target</th>
                   <th>Breaches</th>
                   <th>Operator Score</th>
@@ -109,7 +213,7 @@ export class AnalyticsReportManager {
                       </span>
                     </td>
                     <td>
-                      <strong style="color: var(--color-success); font-family: var(--font-mono);">
+                      <strong style="color: ${c.queueCount > 6 ? 'var(--color-warning)' : 'var(--color-success)'}; font-family: var(--font-mono);">
                         ${(96.5 - (c.queueCount > 6 ? 2.5 : 0)).toFixed(1)}%
                       </strong>
                     </td>
@@ -126,19 +230,8 @@ export class AnalyticsReportManager {
   }
 
   attachEvents() {
-    const btnCsv = document.getElementById('btn-export-csv');
-    if (btnCsv) {
-      btnCsv.addEventListener('click', () => {
-        this.exportCSV();
-      });
-    }
-
-    const btnPdf = document.getElementById('btn-export-pdf');
-    if (btnPdf) {
-      btnPdf.addEventListener('click', () => {
-        window.print();
-      });
-    }
+    document.getElementById('btn-export-csv')?.addEventListener('click', () => this.exportCSV());
+    document.getElementById('btn-export-pdf')?.addEventListener('click', () => window.print());
   }
 
   exportCSV() {
@@ -152,11 +245,10 @@ export class AnalyticsReportManager {
       c.queueCount
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `DoP_Counter_Audit_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('href', encodeURI(csv));
+    link.setAttribute('download', `DoP_Audit_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();

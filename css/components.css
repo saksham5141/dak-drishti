@@ -811,3 +811,99 @@
   color: var(--post-red);
   padding-top: 10px;
 }
+
+/* --------------------------------------------------------------------------
+   5. Analytics Predictive Bar Chart
+   -------------------------------------------------------------------------- */
+.analytics-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 220px;
+  padding: 20px 12px 0;
+  margin-top: 16px;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 6px;
+  position: relative;
+}
+
+.bar-value-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  position: absolute;
+  bottom: calc(var(--bar-height, 50%) + 36px);
+  width: 100%;
+  text-align: center;
+}
+
+.bar-wrapper {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 4px;
+}
+
+.bar-normal {
+  background: linear-gradient(180deg, var(--post-gold) 0%, rgba(245, 124, 0, 0.6) 100%);
+}
+
+.bar-peak {
+  background: linear-gradient(180deg, var(--post-red) 0%, rgba(211, 47, 47, 0.7) 100%);
+  box-shadow: 0 0 12px var(--post-red-glow);
+  animation: bar-pulse 2s infinite;
+}
+
+@keyframes bar-pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--post-red-glow); }
+  50% { box-shadow: 0 0 20px rgba(211, 47, 47, 0.6); }
+}
+
+.bar-time-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  margin-top: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.bar-desc-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .analytics-bar-chart {
+    gap: 6px;
+  }
+  .bar-desc-label {
+    display: none;
+  }
+}

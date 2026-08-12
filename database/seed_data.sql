@@ -1,5 +1,5 @@
 -- ============================================================================
--- DakDrishti 4.0 - Comprehensive MySQL Seed Data
+-- DakDrishti 4.0 - Clean MySQL Seed Data (Fresh Start)
 -- Department of Posts (DoP), Ministry of Communications, Govt. of India
 -- ============================================================================
 
@@ -55,52 +55,25 @@ INSERT INTO `services_catalog` (`category_code`, `service_code`, `service_name`,
 ('citizen', 'DLC_JEEVAN', 'Digital Life Certificate (Jeevan Pramaan)', 'डिजिटल जीवन प्रमाण पत्र', 240),
 ('citizen', 'PLI_PREM', 'Postal Life Insurance Premium Deposit', 'डाक जीवन बीमा प्रीमियम जमा', 300);
 
--- 7. Counters (Connaught Place HPO)
+-- 7. Counters (Connaught Place HPO) — Fresh idle state, no active tokens
 INSERT INTO `counters` (`counter_id`, `office_id`, `counter_code`, `counter_name`, `counter_name_hi`, `category_code`, `assigned_operator_id`, `status`, `current_token_id`, `operator_present`, `queue_count`, `today_served_count`, `sla_threshold_sec`) VALUES
-(1, 'HPO-110002', 'C-01', 'Counter 1 - Speed Post & Domestic Mail', 'काउंटर 1 - स्पीड पोस्ट एवं डाक सेवा', 'mail', 1, 'serving', 'A-108', TRUE, 6, 54, 420),
-(2, 'HPO-110002', 'C-02', 'Counter 2 - Express Parcel & COD', 'काउंटर 2 - पार्सल एवं ई-कॉमर्स बुकिंग', 'parcel', 2, 'serving', 'B-204', TRUE, 4, 38, 480),
-(3, 'HPO-110002', 'C-03', 'Counter 3 - POSB Banking & IPPB Financials', 'काउंटर 3 - डाकघर बचत बैंक एवं IPPB', 'banking', 3, 'congested', 'C-312', TRUE, 9, 62, 600),
-(4, 'HPO-110002', 'C-04', 'Counter 4 - Aadhaar, PLI & Citizen Services', 'काउंटर 4 - आधार, बीमा एवं नागरिक सेवाएं', 'citizen', 4, 'serving', 'D-407', TRUE, 5, 41, 600);
+(1, 'HPO-110002', 'C-01', 'Counter 1 - Speed Post & Domestic Mail', 'काउंटर 1 - स्पीड पोस्ट एवं डाक सेवा', 'mail', 1, 'idle', NULL, TRUE, 0, 0, 420),
+(2, 'HPO-110002', 'C-02', 'Counter 2 - Express Parcel & COD', 'काउंटर 2 - पार्सल एवं ई-कॉमर्स बुकिंग', 'parcel', 2, 'idle', NULL, TRUE, 0, 0, 480),
+(3, 'HPO-110002', 'C-03', 'Counter 3 - POSB Banking & IPPB Financials', 'काउंटर 3 - डाकघर बचत बैंक एवं IPPB', 'banking', 3, 'idle', NULL, TRUE, 0, 0, 600),
+(4, 'HPO-110002', 'C-04', 'Counter 4 - Aadhaar, PLI & Citizen Services', 'काउंटर 4 - आधार, बीमा एवं नागरिक सेवाएं', 'citizen', 4, 'idle', NULL, TRUE, 0, 0, 600);
 
--- 8. Live Sample Queue Tokens
-INSERT INTO `tokens` (`token_id`, `office_id`, `counter_id`, `category_code`, `service_id`, `citizen_name`, `citizen_mobile`, `is_priority`, `priority_type`, `status`, `wait_duration_sec`, `service_duration_sec`) VALUES
-('A-108', 'HPO-110002', 1, 'mail', 1, 'Vikram Malhotra', '9871101204', FALSE, NULL, 'SERVING', 240, 145),
-('A-109', 'HPO-110002', 1, 'mail', 1, 'Suresh Chandra (Sr. Citizen)', '9411008831', TRUE, 'SENIOR_CITIZEN', 'WAITING', 180, 0),
-('A-110', 'HPO-110002', 1, 'mail', 1, 'Megha Singhal', '9911003341', FALSE, NULL, 'WAITING', 120, 0),
-('A-111', 'HPO-110002', 1, 'mail', 2, 'Deepak Verma', '8811009921', FALSE, NULL, 'WAITING', 60, 0),
-
-('B-204', 'HPO-110002', 2, 'parcel', 3, 'Rahul Enterprises', '9871104455', FALSE, NULL, 'SERVING', 300, 210),
-('B-205', 'HPO-110002', 2, 'parcel', 3, 'Amit Bansal', '9711001122', FALSE, NULL, 'WAITING', 150, 0),
-
-('C-312', 'HPO-110002', 3, 'banking', 5, 'Kailash Pati (Pensioner)', '9211007788', TRUE, 'SENIOR_CITIZEN', 'SERVING', 420, 390),
-('C-313', 'HPO-110002', 3, 'banking', 5, 'Shanti Devi', '9311005566', FALSE, NULL, 'WAITING', 360, 0),
-('C-314', 'HPO-110002', 3, 'banking', 6, 'Alok Gupta', '9811006677', FALSE, NULL, 'WAITING', 240, 0),
-('C-315', 'HPO-110002', 3, 'banking', 7, 'Pooja Agarwal', '9911002211', FALSE, NULL, 'WAITING', 180, 0),
-
-('D-407', 'HPO-110002', 4, 'citizen', 9, 'Mohd. Imran', '9611008899', FALSE, NULL, 'SERVING', 310, 280),
-('D-408', 'HPO-110002', 4, 'citizen', 9, 'Geeta Sharma', '9511004433', FALSE, NULL, 'WAITING', 210, 0),
-('D-409', 'HPO-110002', 4, 'citizen', 11, 'Harpreet Singh', '9811001144', FALSE, NULL, 'WAITING', 90, 0);
-
--- 9. CCTV Nodes & Real-time AI Vision
+-- 8. CCTV Nodes (Infrastructure — always present)
 INSERT INTO `vision_cctv_nodes` (`node_id`, `office_id`, `counter_id`, `camera_label`, `resolution`, `fps`, `is_online`) VALUES
 ('CAM-NODE-01', 'HPO-110002', 1, 'CAM 01 - SPEED POST & MAIL BAY', '1920x1080', 30, TRUE),
 ('CAM-NODE-02', 'HPO-110002', 2, 'CAM 02 - PARCEL & COD DESK', '1920x1080', 30, TRUE),
 ('CAM-NODE-03', 'HPO-110002', 3, 'CAM 03 - POSB BANKING COUNTER', '1920x1080', 30, TRUE),
 ('CAM-NODE-04', 'HPO-110002', 4, 'CAM 04 - AADHAAR & CITIZEN DESK', '1920x1080', 30, TRUE);
 
--- 10. AI Alerts
+-- 9. System Online Alert (single clean entry)
 INSERT INTO `ai_alerts` (`office_id`, `counter_id`, `severity`, `alert_type`, `title`, `description`, `suggested_action`) VALUES
-('HPO-110002', 3, 'high', 'QUEUE_SURGE', 'High Queue Density on Banking Counter (C-03)', 'Vision detected 9 persons waiting in C-03 queue. Average wait time trending above 8.5 minutes.', 'Activate Load Rebalancer: Assign Counter 2 or auxiliary operator to POSB queue.'),
-('HPO-110002', 1, 'medium', 'SENIOR_CITIZEN_WAIT', 'Senior Citizen Priority Queue Notice', 'Vision AI flagged Senior Citizen waiting at Counter 1 for > 3 minutes. Priority routing recommended.', 'Fast-track Token A-109 on next call cycle.'),
-('HPO-110002', NULL, 'info', 'SLA_BREACH_RISK', 'SLA Milestone: 94.2% Optimal Service', 'Overall post office average turnaround time is currently 5.2 mins (Within target SLA of 7 mins).', 'Standard monitoring active.');
+('HPO-110002', NULL, 'info', 'SYSTEM_READY', 'System Online — Fresh Shift Ready', 'All 4 service counters are active and ready for citizen intake. Operators on duty.', 'Standard monitoring active.');
 
--- 11. Citizen Feedback Entries
-INSERT INTO `citizen_feedback` (`office_id`, `counter_id`, `service_category`, `rating_score`, `comments`, `sentiment_class`, `sentiment_confidence`) VALUES
-('HPO-110002', 1, 'Speed Post / Parcel Booking', 5, 'Speed Post booking was exceptionally fast. Barely waited 3 minutes.', 'POSITIVE', 98.40),
-('HPO-110002', 3, 'POSB Banking / Pension Withdrawal', 4, 'Pension disbursement was smooth, though banking line was somewhat long.', 'POSITIVE', 88.20),
-('HPO-110002', 4, 'Aadhaar Enrolment & Update', 5, 'Biometric update completed seamlessly by the operator.', 'POSITIVE', 96.10);
-
--- 12. Predictive Rush Forecast
+-- 10. Predictive Rush Forecast (reference data)
 INSERT INTO `predictive_rush_forecast` (`office_id`, `day_of_week`, `hour_slot`, `predicted_footfall`, `is_pension_disbursement_window`, `recommended_active_counters`) VALUES
 ('HPO-110002', 'Monday', '09:00-10:00', 24, FALSE, 2),
 ('HPO-110002', 'Monday', '10:00-11:00', 52, FALSE, 3),
@@ -110,3 +83,7 @@ INSERT INTO `predictive_rush_forecast` (`office_id`, `day_of_week`, `hour_slot`,
 ('HPO-110002', 'Monday', '14:00-15:00', 78, FALSE, 4),
 ('HPO-110002', 'Monday', '15:00-16:00', 64, FALSE, 3),
 ('HPO-110002', 'Monday', '16:00-17:00', 42, FALSE, 2);
+
+-- NOTE: No fake tokens, citizen feedback, or AI telemetry are seeded.
+-- The system starts completely fresh. Real data will be created through 
+-- actual usage via the Citizen Portal and Employee Console.

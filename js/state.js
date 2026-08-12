@@ -38,11 +38,11 @@ export const INITIAL_COUNTERS = [
     operatorName: 'Rameshwar Dayal (PA)',
     operatorPresent: true,
     idleDurationSec: 0,
-    status: 'serving',
-    servingToken: 'A-108',
-    servingCustomerDwellSec: 145,
-    servedCountToday: 54,
-    queueCount: 6,
+    status: 'idle',
+    servingToken: 'None',
+    servingCustomerDwellSec: 0,
+    servedCountToday: 0,
+    queueCount: 0,
     avgServiceTimeSec: 180,
     slaThresholdSec: 420
   },
@@ -56,11 +56,11 @@ export const INITIAL_COUNTERS = [
     operatorName: 'Priyanka Sharma (PA)',
     operatorPresent: true,
     idleDurationSec: 0,
-    status: 'serving',
-    servingToken: 'B-204',
-    servingCustomerDwellSec: 210,
-    servedCountToday: 38,
-    queueCount: 4,
+    status: 'idle',
+    servingToken: 'None',
+    servingCustomerDwellSec: 0,
+    servedCountToday: 0,
+    queueCount: 0,
     avgServiceTimeSec: 240,
     slaThresholdSec: 480
   },
@@ -74,11 +74,11 @@ export const INITIAL_COUNTERS = [
     operatorName: 'Virender Nath (Sr. PA)',
     operatorPresent: true,
     idleDurationSec: 0,
-    status: 'congested',
-    servingToken: 'C-312',
-    servingCustomerDwellSec: 390,
-    servedCountToday: 62,
-    queueCount: 9,
+    status: 'idle',
+    servingToken: 'None',
+    servingCustomerDwellSec: 0,
+    servedCountToday: 0,
+    queueCount: 0,
     avgServiceTimeSec: 320,
     slaThresholdSec: 600
   },
@@ -92,54 +92,158 @@ export const INITIAL_COUNTERS = [
     operatorName: 'Anita Kumari (PA)',
     operatorPresent: true,
     idleDurationSec: 0,
-    status: 'serving',
-    servingToken: 'D-407',
-    servingCustomerDwellSec: 280,
-    servedCountToday: 41,
-    queueCount: 5,
+    status: 'idle',
+    servingToken: 'None',
+    servingCustomerDwellSec: 0,
+    servedCountToday: 0,
+    queueCount: 0,
     avgServiceTimeSec: 360,
     slaThresholdSec: 600
   }
 ];
 
-export const INITIAL_TOKENS = [
-  { id: 'A-108', category: 'mail', counterId: 1, counterCode: 'C-01', citizenName: 'Vikram Malhotra', mobile: '9871101204', status: 'SERVING', priority: false, waitSec: 240, serviceSec: 145, time: '11:15 AM' },
-  { id: 'A-109', category: 'mail', counterId: 1, counterCode: 'C-01', citizenName: 'Suresh Chandra (Sr. Citizen)', mobile: '9411008831', status: 'WAITING', priority: true, waitSec: 180, time: '11:18 AM' },
-  { id: 'A-110', category: 'mail', counterId: 1, counterCode: 'C-01', citizenName: 'Megha Singhal', mobile: '9911003341', status: 'WAITING', priority: false, waitSec: 120, time: '11:22 AM' },
-  { id: 'B-204', category: 'parcel', counterId: 2, counterCode: 'C-02', citizenName: 'Rahul Enterprises', mobile: '9871104455', status: 'SERVING', priority: false, waitSec: 300, serviceSec: 210, time: '11:12 AM' },
-  { id: 'C-312', category: 'banking', counterId: 3, counterCode: 'C-03', citizenName: 'Kailash Pati (Pensioner)', mobile: '9211007788', status: 'SERVING', priority: true, waitSec: 420, serviceSec: 390, time: '11:08 AM' },
-  { id: 'D-407', category: 'citizen', counterId: 4, counterCode: 'C-04', citizenName: 'Mohd. Imran', mobile: '9611008899', status: 'SERVING', priority: false, waitSec: 310, serviceSec: 280, time: '11:14 AM' }
-];
+export const INITIAL_TOKENS = [];
 
 export const INITIAL_ALERTS = [
   {
     id: 1,
-    severity: 'high',
-    title: 'High Queue Density Alert on Banking Counter (C-03)',
-    description: 'Vision detected 9 persons waiting in C-03 queue. Average wait time trending above 8.5 minutes.',
-    timestamp: '11:24 AM',
-    counterId: 3,
-    suggestedAction: 'Activate Load Rebalancer: Assign Counter 2 to POSB queue.'
-  },
-  {
-    id: 2,
-    severity: 'medium',
-    title: 'Senior Citizen Priority Queue Notice',
-    description: 'Vision AI flagged Senior Citizen waiting at Counter 1 for > 3 minutes. Priority routing recommended.',
-    timestamp: '11:21 AM',
-    counterId: 1,
-    suggestedAction: 'Fast-track Token A-109 on next call cycle.'
-  },
-  {
-    id: 3,
     severity: 'info',
-    title: 'SLA Milestone: 94.2% Optimal Service',
-    description: 'Overall post office average turnaround time is currently 5.2 mins (Within target SLA of 7 mins).',
-    timestamp: '11:15 AM',
+    title: 'System Online — Fresh Shift Ready',
+    description: 'All 4 service counters are active and ready for citizen intake. Operators on duty.',
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     counterId: null,
     suggestedAction: 'Standard monitoring active.'
   }
 ];
+
+export const TRANSLATIONS = {
+  en: {
+    appTitle: "DakDrishti",
+    subTitle: "Measurement & Monitoring of Post Office Counter Services",
+    deptOfPosts: "Department of Posts",
+    ministryOfCom: "Ministry of Communications, Govt. of India",
+    selectYourRole: "Select Your Role",
+    iAmCitizen: "I am a Citizen / Customer",
+    iAmEmployee: "I am an Employee / Staff",
+    citizenRoleDesc: "Book E-Tokens, check queue sizes & leave feedback",
+    employeeRoleDesc: "Access AI Edge Vision, digital twin & command center",
+    citizenPortal: "Citizen Self-Service Portal",
+    employeeConsole: "Employee Console",
+    staffId: "Staff ID / Username",
+    password: "Security Password / PIN",
+    citizenName: "Your Full Name",
+    logout: "Logout 🚪",
+    welcome: "Welcome",
+    digitalTwin: "Digital Twin & Floorplan",
+    visionLive: "AI Vision & CCTV HUD",
+    citizenAccess: "Citizen Access & E-Tokens",
+    multiTier: "Multi-Tier Hierarchy Command",
+    predictiveAnalytics: "Predictive Analytics & Reports",
+    startFreshShift: "Start Fresh Shift (Reset)",
+    adminTierView: "ADMIN TIER VIEW:",
+    mysqlStatus: "MySQL DB Sync",
+    edgeAiOnline: "EDGE AI ONLINE",
+    selectRole: "Select Portal Entrance Role",
+    citizenMobile: "Mobile Number",
+    enterCitizenPortal: "Continue to Verification ➔",
+    loginOperatorConsole: "Continue to Verification ➔",
+    accessAlert: "Unauthorized access is prohibited and logged.",
+    exitPortal: "Exit Portal 🚪",
+    
+    // Token generator form
+    instantTokenGen: "Instant E-Token Generator",
+    tokenGenDesc: "Get queue pass on your mobile with live wait time and counter guidance",
+    liveKiosk: "Live Kiosk",
+    serviceCategoryReq: "Service Category Required *",
+    mailOption: "Speed Post, Registered Post & Letters",
+    parcelOption: "Express Parcel & E-Commerce COD",
+    bankingOption: "POSB Savings Bank, TD, RD, IPPB & Pension",
+    citizenOption: "Aadhaar Update, PLI Insurance & Jeevan Pramaan",
+    citizenNameLabel: "Citizen Name",
+    mobileLabel: "Mobile Number (for live SMS updates)",
+    priorityLabel: "⚡ Senior Citizen (60+ yrs) / Divyangjan (PwD) / Expectant Mother (Priority Routing)",
+    priorityDesc: "Priority tokens are automatically fast-tracked by AI load rebalancer in adherence to DoP Citizen Charter.",
+    generateTokenPass: "🎫 Generate E-Token Pass",
+    
+    // Token pass card
+    dopBanner: "Department of Posts • भारत डाक",
+    priorityPass: "⚡ PRIORITY PASS",
+    standardToken: "STANDARD TOKEN",
+    assignedCounter: "Assigned Counter",
+    queuePosition: "Queue Position",
+    estWaitTime: "Estimated Wait Time",
+    currServing: "Current Token Serving",
+    nextInTurn: "Next in Turn (Proceed to counter)",
+    citizensAhead: "citizens ahead",
+    minutesText: "Minutes",
+    voiceAnnounceAlert: "📢 Multi-lingual voice announcement will call ready.",
+    noActiveToken: "No Active E-Token",
+    noActiveTokenDesc: "Fill the form on the left to generate your virtual token pass. You'll receive live audio and visual notifications when your turn arrives."
+  },
+  hi: {
+    appTitle: "डाक सेवा दृष्टि",
+    subTitle: "डाकघर काउंटर सेवाओं का मापन एवं निगरानी प्रणाली",
+    deptOfPosts: "डाक विभाग",
+    ministryOfCom: "संचार मंत्रालय, भारत सरकार",
+    selectYourRole: "अपनी भूमिका चुनें",
+    iAmCitizen: "मैं एक नागरिक / ग्राहक हूँ",
+    iAmEmployee: "मैं एक कर्मचारी / स्टाफ हूँ",
+    citizenRoleDesc: "ई-टोकन बुक करें, कतार आकार जांचें और फीडबैक दें",
+    employeeRoleDesc: "एआई एज विजन, डिजिटल ट्विन और कमांड सेंटर तक पहुंचें",
+    citizenPortal: "नागरिक स्व-सेवा पोर्टल",
+    employeeConsole: "कर्मचारी कंसोल",
+    staffId: "कर्मचारी आईडी / उपयोगकर्ता नाम",
+    password: "सुरक्षा पासवर्ड / पिन",
+    citizenName: "आपका पूरा नाम",
+    citizenMobile: "मोबाइल नंबर",
+    enterCitizenPortal: "सत्यापन के लिए आगे बढ़ें ➔",
+    loginOperatorConsole: "सत्यापन के लिए आगे बढ़ें ➔",
+    accessAlert: "अनधिकृत पहुंच निषिद्ध और लॉग की गई है।",
+    exitPortal: "पोर्टल से बाहर निकलें 🚪",
+    logout: "लॉगआउट 🚪",
+    welcome: "स्वागत हे",
+    digitalTwin: "डिजिटल ट्विन एवं फ्लोरप्लान",
+    visionLive: "एआई विजन एवं सीसीटीवी हड",
+    citizenAccess: "नागरिक पहुंच एवं ई-टोकन",
+    multiTier: "बहु-स्तरीय पदानुक्रम कमांड",
+    predictiveAnalytics: "भविष्य कहनेवाला विश्लेषण एवं रिपोर्ट",
+    startFreshShift: "नई पाली शुरू करें (रीसेट)",
+    adminTierView: "प्रशासक श्रेणी दृश्य:",
+    mysqlStatus: "माईएसक्यूएल डेटाबेस सिंक",
+    edgeAiOnline: "एज एआई ऑनलाइन",
+    selectRole: "पोर्टल प्रवेश भूमिका का चयन करें",
+    
+    // Token generator form
+    instantTokenGen: "त्वरित ई-टोकन जनरेटर",
+    tokenGenDesc: "लाइव प्रतीक्षा समय और काउंटर मार्गदर्शन के साथ अपने मोबाइल पर कतार पास प्राप्त करें",
+    liveKiosk: "लाइव कियोस्क",
+    serviceCategoryReq: "आवश्यक सेवा श्रेणी *",
+    mailOption: "स्पीड पोस्ट, पंजीकृत पोस्ट और पत्र",
+    parcelOption: "एक्सप्रेस पार्सल और ई-कॉमर्स सीओडी",
+    bankingOption: "डाकघर बचत बैंक, टीडी, आरडी, आईपीपीबी और पेंशन",
+    citizenOption: "आधार अपडेट, पीएलआई बीमा और जीवन प्रमाण",
+    citizenNameLabel: "नागरिक का नाम",
+    mobileLabel: "मोबाइल नंबर (लाइव एसएमएस अपडेट के लिए)",
+    priorityLabel: "⚡ वरिष्ठ नागरिक (60+ वर्ष) / दिव्यांगजन (PwD) / गर्भवती महिला (प्राथमिकता मार्ग)",
+    priorityDesc: "डाक विभाग नागरिक चार्टर के अनुपालन में एआई लोड रीबैलेंसर द्वारा प्राथमिकता टोकन स्वचालित रूप से फास्ट-ट्रैक किए जाते हैं।",
+    generateTokenPass: "🎫 ई-टोकन पास उत्पन्न करें",
+    
+    // Token pass card
+    dopBanner: "डाक विभाग • भारत डाक",
+    priorityPass: "⚡ प्राथमिकता पास",
+    standardToken: "सामान्य टोकन",
+    assignedCounter: "आवंटित काउंटर",
+    queuePosition: "कतार में स्थिति",
+    estWaitTime: "अनुमानित प्रतीक्षा समय",
+    currServing: "वर्तमान में सेवारत टोकन",
+    nextInTurn: "बारी आ गई है (काउंटर पर जाएं)",
+    citizensAhead: "नागरिक आगे हैं",
+    minutesText: "मिनट",
+    voiceAnnounceAlert: "📢 तैयार होने पर बहुभाषी आवाज घोषणा बुलाई जाएगी।",
+    noActiveToken: "कोई सक्रिय ई-टोकन नहीं",
+    noActiveTokenDesc: "अपना वर्चुअल टोकन पास उत्पन्न करने के लिए बाईं ओर फॉर्म भरें। आपकी बारी आने पर आपको लाइव ऑडियो और विजुअल सूचनाएं प्राप्त होंगी।"
+  }
+};
 
 class AppStore {
   constructor() {
@@ -149,13 +253,34 @@ class AppStore {
     this.tokens = JSON.parse(JSON.stringify(INITIAL_TOKENS));
     this.alerts = JSON.parse(JSON.stringify(INITIAL_ALERTS));
     this.userToken = null;
+    this.userRole = null; // 'employee' | 'customer' | null
     this.theme = 'light';
+    this.language = 'en'; // 'en' | 'hi'
     this.activeCctvCam = 1;
     this.mysqlConnected = false;
     this.listeners = [];
 
     // Sync from MySQL server on startup
     this.syncFromBackend();
+  }
+
+  login(role) {
+    this.userRole = role;
+    this.notify('LOGIN_STATE_CHANGED', role);
+  }
+
+  logout() {
+    this.userRole = null;
+    this.notify('LOGIN_STATE_CHANGED', null);
+  }
+
+  setLanguage(lang) {
+    this.language = lang;
+    this.notify('LANGUAGE_CHANGED', lang);
+  }
+
+  t(key) {
+    return TRANSLATIONS[this.language]?.[key] || TRANSLATIONS['en']?.[key] || key;
   }
 
   subscribe(listener) {
@@ -204,9 +329,32 @@ class AppStore {
             if (local) {
               local.queueCount = srvC.queueCount ?? local.queueCount;
               local.servedCountToday = srvC.servedCountToday ?? local.servedCountToday;
+              local.status = srvC.status ?? local.status;
+              local.operatorPresent = srvC.operatorPresent ?? local.operatorPresent;
+              local.operatorName = srvC.operatorName ?? local.operatorName;
+              local.category = srvC.category ?? local.category;
+              local.name = srvC.name ?? local.name;
+              local.nameHi = srvC.nameHi ?? local.nameHi;
+              local.service = srvC.service ?? local.service;
               if (srvC.servingToken) local.servingToken = srvC.servingToken;
             }
           });
+        }
+      }
+
+      const resTokens = await fetch('/api/tokens');
+      if (resTokens.ok) {
+        const tData = await resTokens.json();
+        if (tData.data && tData.data.length > 0) {
+          this.tokens = tData.data;
+        }
+      }
+
+      const resAlerts = await fetch('/api/alerts');
+      if (resAlerts.ok) {
+        const aData = await resAlerts.json();
+        if (aData.data && aData.data.length > 0) {
+          this.alerts = aData.data;
         }
       }
     } catch (e) {

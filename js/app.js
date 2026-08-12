@@ -19,21 +19,271 @@ class DakDrishtiApp {
     this.dashboards = null;
     this.analytics = null;
     this.simInterval = null;
+
+    // Login / Verification Flow State
+    this.loginPhase = 'role-select'; // 'role-select' | 'credentials' | 'otp'
+    this.selectedRole = null; // 'customer' | 'employee'
+    this.resendTimer = { customer: 0, employee: 0 };
+    this.timerIntervals = { customer: null, employee: null };
+    this.tempCitizenData = null;
+    this.tempEmployeeData = null;
   }
 
   init() {
-    this.renderShell();
-    this.initVisionEngine();
-    this.renderSectionContent();
-    this.attachGlobalEvents();
-    this.startSimulationClock();
     this.listenToState();
+    this.renderShell();
+  }
+
+  startResendTimer(role) {
+    this.resendTimer[role] = 30;
+    if (this.timerIntervals[role]) {
+      clearInterval(this.timerIntervals[role]);
+    }
+    this.timerIntervals[role] = setInterval(() => {
+      this.resendTimer[role]--;
+      if (this.resendTimer[role] <= 0) {
+        clearInterval(this.timerIntervals[role]);
+        this.timerIntervals[role] = null;
+      }
+      if (store.userRole === null) {
+        const btn = document.getElementById(`${role}-resend-btn`);
+        if (btn) {
+          if (this.resendTimer[role] > 0) {
+            btn.disabled = true;
+            btn.innerText = `Resend OTP (${this.resendTimer[role]}s)`;
+          } else {
+            btn.disabled = false;
+            btn.innerText = 'Resend OTP 🔄';
+          }
+        }
+      }
+    }, 1000);
   }
 
   renderShell() {
     const root = document.getElementById('app');
     if (!root) return;
 
+    if (store.userRole === null) {
+      this.renderLoginGateway(root);
+      this.attachLoginEvents();
+      if (this.simInterval) {
+        clearInterval(this.simInterval);
+        this.simInterval = null;
+      }
+      if (this.visionEngine) {
+        this.visionEngine.stop();
+        this.visionEngine = null;
+      }
+    } else if (store.userRole === 'customer') {
+      this.renderCitizenShell(root);
+      this.attachCitizenShellEvents();
+      this.startSimulationClock();
+    } else if (store.userRole === 'employee') {
+      this.renderAdminShell(root);
+      this.initVisionEngine();
+      this.renderSectionContent();
+      this.attachGlobalEvents();
+      this.startSimulationClock();
+    }
+  }
+
+  renderLoginGateway(root) {
+    let mainContentHtml = '';
+
+    if (this.loginPhase === 'role-select') {
+      mainContentHtml = `
+        <div class="role-select-grid">
+          <div class="role-select-label">${store.t('selectYourRole')}</div>
+          
+          <div class="role-card role-citizen" data-role="customer">
+            <div class="role-card-icon">👥</div>
+            <div class="role-card-info">
+              <h3>${store.t('iAmCitizen')}</h3>
+              <p>${store.t('citizenRoleDesc')}</p>
+              <div class="role-card-features">
+                <span class="feature-tag">E-Tokens</span>
+                <span class="feature-tag">Live Queue</span>
+              </div>
+            </div>
+            <div class="role-card-arrow">➔</div>
+          </div>
+
+          <div class="role-card role-employee" data-role="employee">
+            <div class="role-card-icon">👮</div>
+            <div class="role-card-info">
+              <h3>${store.t('iAmEmployee')}</h3>
+              <p>${store.t('employeeRoleDesc')}</p>
+              <div class="role-card-features">
+                <span class="feature-tag">AI Vision</span>
+                <span class="feature-tag">Digital Twin</span>
+              </div>
+            </div>
+            <div class="role-card-arrow">➔</div>
+          </div>
+        </div>
+      `;
+    } else if (this.loginPhase === 'credentials') {
+      if (this.selectedRole === 'customer') {
+        mainContentHtml = `
+          <div class="login-single-card-wrapper">
+            <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
+            <div class="login-card customer-card">
+              <div class="login-card-header">
+                <div class="login-card-icon">👥</div>
+                <div class="login-card-title">
+                  <h2>${store.t('citizenPortal')}</h2>
+                  <p>Book E-Tokens, check queue sizes & leave feedback</p>
+                </div>
+              </div>
+              <form id="citizen-login-form" class="login-form">
+                <div class="form-group">
+                  <label for="citizen-name">${store.t('citizenName')} <span class="required-star">*</span></label>
+                  <input type="text" id="citizen-name" class="form-input" placeholder="e.g. Saksham Saraswat" required>
+                </div>
+                <div class="form-group">
+                  <label for="citizen-mobile">${store.t('citizenMobile')} <span class="required-star">*</span></label>
+                  <input type="tel" id="citizen-mobile" class="form-input" placeholder="10-digit mobile number" pattern="[6-9][0-9]{9}" required title="Please enter a valid 10-digit Indian mobile number">
+                </div>
+                <button type="submit" class="btn btn-login">
+                  ${store.t('enterCitizenPortal')}
+                </button>
+              </form>
+            </div>
+          </div>
+        `;
+      } else {
+        mainContentHtml = `
+          <div class="login-single-card-wrapper">
+            <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
+            <div class="login-card employee-card">
+              <div class="login-card-header">
+                <div class="login-card-icon">👮</div>
+                <div class="login-card-title">
+                  <h2>${store.t('employeeConsole')}</h2>
+                  <p>Access AI Edge Vision, digital twin & command center</p>
+                </div>
+              </div>
+              <form id="employee-login-form" class="login-form">
+                <div id="employee-login-error" class="login-error-msg"></div>
+                <div class="form-group">
+                  <label for="employee-id">${store.t('staffId')} <span class="required-star">*</span></label>
+                  <input type="text" id="employee-id" class="form-input" placeholder="e.g. ADMIN123" required>
+                </div>
+                <div class="form-group">
+                  <label for="employee-password">${store.t('password')} <span class="required-star">*</span></label>
+                  <input type="password" id="employee-password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-login">
+                  ${store.t('loginOperatorConsole')}
+                </button>
+                <div class="login-credentials-hint">
+                  ℹ️ <strong>${store.t('accessAlert')}</strong>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+    } else if (this.loginPhase === 'otp') {
+      if (this.selectedRole === 'customer') {
+        const maskedPhone = this.tempCitizenData?.mobile ? '+91 XXXXX' + this.tempCitizenData.mobile.slice(-4) : '+91 XXXXX1234';
+        mainContentHtml = `
+          <div class="login-single-card-wrapper">
+            <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
+            <div class="login-card customer-card">
+              <div class="login-card-header">
+                <div class="login-card-icon">🔑</div>
+                <div class="login-card-title">
+                  <h2>${store.language === 'hi' ? 'नागरिक सत्यापन' : 'Citizen Verification'}</h2>
+                  <p>${store.language === 'hi' ? 'सुरक्षित प्रमाणीकरण' : 'Secure Authentication'}</p>
+                </div>
+              </div>
+              <div class="otp-sent-info">
+                ${store.language === 'hi' ? 'सत्यापन कोड भेजा गया:' : '6-digit OTP code sent to'}<br/>
+                <span class="otp-phone-mask">${maskedPhone}</span>
+              </div>
+              <form id="citizen-otp-form" class="login-form" style="margin-top: 10px;">
+                <div id="citizen-otp-error" class="login-error-msg" style="text-align: center;"></div>
+                <div class="form-group">
+                  <input type="text" id="citizen-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
+                </div>
+                <button type="submit" class="btn btn-login">
+                  ${store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪'}
+                </button>
+                <div class="otp-actions-row">
+                  <button type="button" id="citizen-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.customer > 0 ? 'disabled' : ''}>
+                    ${this.resendTimer.customer > 0 ? `Resend OTP (${this.resendTimer.customer}s)` : 'Resend OTP 🔄'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      } else {
+        mainContentHtml = `
+          <div class="login-single-card-wrapper">
+            <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
+            <div class="login-card employee-card">
+              <div class="login-card-header">
+                <div class="login-card-icon">🔒</div>
+                <div class="login-card-title">
+                  <h2>MFA Verification</h2>
+                  <p>SecurMail Authentication</p>
+                </div>
+              </div>
+              <div class="otp-sent-info">
+                ${store.language === 'hi' ? 'सुरक्षा उपकरण या SecurMail द्वारा उत्पन्न पिन दर्ज करें।' : 'Enter the 6-digit pin from your security device.'}
+              </div>
+              <form id="employee-otp-form" class="login-form" style="margin-top: 10px;">
+                <div id="employee-otp-error" class="login-error-msg" style="text-align: center;"></div>
+                <div class="form-group">
+                  <input type="text" id="employee-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
+                </div>
+                <button type="submit" class="btn btn-login">
+                  ${store.language === 'hi' ? 'सत्यापित करें और प्रवेश करें 🖥️' : 'Verify & Enter Console 🖥️'}
+                </button>
+                <div class="otp-actions-row">
+                  <button type="button" id="employee-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.employee > 0 ? 'disabled' : ''}>
+                    ${this.resendTimer.employee > 0 ? `Resend PIN (${this.resendTimer.employee}s)` : 'Resend PIN 🔄'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    root.innerHTML = `
+      <div class="login-gateway-container">
+        <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 20;">
+          <select id="gateway-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+            <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+            <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
+          </select>
+          <button id="theme-toggle-btn" class="control-btn" style="border-radius: var(--radius-md);" title="Toggle Dark/Light Mode">
+            🌓
+          </button>
+        </div>
+
+        <div class="login-brand-wrapper">
+          <div class="login-brand-logo">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="white"/>
+            </svg>
+          </div>
+          <h1>${store.t('appTitle')}</h1>
+          <p>${store.t('subTitle')}</p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">${store.t('ministryOfCom')}</p>
+        </div>
+        
+        ${mainContentHtml}
+      </div>
+    `;
+  }
+
+  renderCitizenShell(root) {
     root.innerHTML = `
       <div class="app-container">
         <!-- Top App Bar -->
@@ -46,11 +296,72 @@ class DakDrishtiApp {
             </div>
             <div class="brand-title">
               <h1>
-                डाक सेवा दृष्टि <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-secondary);">| DakDrishti</span>
+                डाक सेवा दृष्टि <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-secondary);">| ${store.t('appTitle')}</span>
+              </h1>
+              <p>
+                <span>${store.t('citizenPortal')}</span> • <span>${store.t('deptOfPosts')}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Top Header Controls -->
+          <div class="header-controls">
+            <select id="citizen-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+              <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+              <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
+            </select>
+            <button id="theme-toggle-btn" class="control-btn" title="Toggle Dark/Light Mode">
+              🌓
+            </button>
+            <button id="logout-btn" class="header-logout-btn">
+              ${store.t('exitPortal')}
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Citizen Area -->
+        <main class="citizen-viewport animate-fade-in">
+          <div class="citizen-welcome-alert">
+            <span>📢 Welcome, <strong>${store.userToken && store.userToken.citizenName ? store.userToken.citizenName : 'Citizen'}</strong>! You have access to real-time ticket booking and post office counters services.</span>
+          </div>
+          <div id="citizen-mount-point"></div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+          <div>
+            <strong>${store.t('appTitle')} 4.0</strong> — ${store.t('citizenPortal')} • ${store.t('deptOfPosts')}
+          </div>
+          <div>
+            ${store.t('ministryOfCom')}
+          </div>
+        </footer>
+      </div>
+    `;
+    const mount = document.getElementById('citizen-mount-point');
+    if (mount) {
+      this.citizenPortal = new CitizenPortalManager(mount);
+    }
+  }
+
+  renderAdminShell(root) {
+    root.innerHTML = `
+      <div class="app-container">
+        <!-- Top App Bar -->
+        <header class="top-header">
+          <div class="brand-section">
+            <div class="brand-logo">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="white"/>
+              </svg>
+            </div>
+            <div class="brand-title">
+              <h1>
+                डाक सेवा दृष्टि <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-secondary);">| ${store.t('appTitle')}</span>
                 <span class="badge-i4">Industry 4.0 AI</span>
               </h1>
               <p>
-                <span>Department of Posts</span> • <span>Ministry of Communications, Govt. of India</span>
+                <span>${store.t('deptOfPosts')}</span> • <span>${store.t('ministryOfCom')}</span>
               </p>
             </div>
           </div>
@@ -58,36 +369,44 @@ class DakDrishtiApp {
           <!-- Main Navigation Tabs -->
           <nav class="main-nav">
             <button class="nav-tab active" data-section="digital-twin">
-              🏛️ Digital Twin & Floorplan
+              🏛️ ${store.t('digitalTwin')}
             </button>
             <button class="nav-tab" data-section="vision-live">
-              📹 AI Vision & CCTV HUD
+              📹 ${store.t('visionLive')}
             </button>
             <button class="nav-tab" data-section="citizen">
-              👥 Citizen Access & E-Tokens
+              👥 ${store.t('citizenAccess')}
             </button>
             <button class="nav-tab" data-section="dashboards">
-              📊 Multi-Tier Hierarchy Command
+              📊 ${store.t('multiTier')}
             </button>
             <button class="nav-tab" data-section="analytics">
-              📈 Predictive Analytics & Reports
+              📈 ${store.t('predictiveAnalytics')}
             </button>
           </nav>
 
           <!-- Top Header Controls -->
           <div class="header-controls">
+            <select id="admin-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+              <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+              <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
+            </select>
+
             <div id="mysql-status-badge" class="live-indicator" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: #3B82F6;">
               <span id="mysql-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #3B82F6;"></span>
-              <span id="mysql-status-text">MySQL DB Sync</span>
+              <span id="mysql-status-text">${store.t('mysqlStatus')}</span>
             </div>
 
             <div class="live-indicator">
               <div class="pulse-dot"></div>
-              <span>EDGE AI ONLINE</span>
+              <span>${store.t('edgeAiOnline')}</span>
             </div>
 
             <button id="theme-toggle-btn" class="control-btn" title="Toggle Dark/Light Mode">
               🌓
+            </button>
+            <button id="logout-btn" class="header-logout-btn">
+              ${store.t('logout')}
             </button>
           </div>
         </header>
@@ -105,9 +424,9 @@ class DakDrishtiApp {
 
           <div class="tier-select-wrapper">
             <button id="btn-fresh-shift" class="btn btn-secondary btn-sm" style="border-color: var(--border-hover); font-weight: 700;">
-              ✨ Start Fresh Shift (Reset)
+              ${store.t('startFreshShift')}
             </button>
-            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-left: 8px;">ADMIN TIER VIEW:</span>
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-left: 8px;">${store.t('adminTierView')}</span>
             <select id="global-tier-select" class="tier-select">
               <option value="tier-1" ${store.currentTier === 'tier-1' ? 'selected' : ''}>Tier 1: Post Office / SPM Console</option>
               <option value="tier-2" ${store.currentTier === 'tier-2' ? 'selected' : ''}>Tier 2: Sub-Division / HPO Aggregated</option>
@@ -126,7 +445,7 @@ class DakDrishtiApp {
                 <strong>Real-time Vision Status:</strong> 4 Service Counters online. Average turnaround time: <strong>5.2 mins</strong> (Target SLA &lt; 7.0 mins).
               </span>
             </div>
-            <span class="badge badge-green" style="font-family: var(--font-mono);">SLA: 94.2%</span>
+            <span class="badge badge-green" id="ticker-sla-badge" style="font-family: var(--font-mono);">SLA: 94.2%</span>
           </div>
         </div>
 
@@ -138,7 +457,7 @@ class DakDrishtiApp {
         <!-- Footer -->
         <footer class="app-footer">
           <div>
-            <strong>DakDrishti 4.0</strong> — Measurement & Monitoring of Counter Services Platform • Department of Posts
+            <strong>${store.t('appTitle')} 4.0</strong> — Measurement & Monitoring of Counter Services Platform • ${store.t('deptOfPosts')}
           </div>
           <div>
             Built with Industry 4.0 AI Edge Vision & Spatial Digital Twin Architecture
@@ -146,6 +465,265 @@ class DakDrishtiApp {
         </footer>
       </div>
     `;
+  }
+
+  attachLoginEvents() {
+    // 0. Role Selection Cards
+    if (this.loginPhase === 'role-select') {
+      const cards = document.querySelectorAll('.role-card');
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          this.selectedRole = card.dataset.role;
+          this.loginPhase = 'credentials';
+          this.renderShell();
+        });
+      });
+    }
+
+    // Back Buttons
+    const backToRolesBtn = document.getElementById('back-to-roles');
+    if (backToRolesBtn) {
+      backToRolesBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.loginPhase = 'role-select';
+        this.selectedRole = null;
+        this.renderShell();
+      });
+    }
+
+    const backToCredentialsBtn = document.getElementById('back-to-credentials');
+    if (backToCredentialsBtn) {
+      backToCredentialsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.loginPhase = 'credentials';
+        const role = this.selectedRole;
+        this.resendTimer[role] = 0;
+        if (this.timerIntervals[role]) {
+          clearInterval(this.timerIntervals[role]);
+          this.timerIntervals[role] = null;
+        }
+        this.renderShell();
+      });
+    }
+
+    // 1. Citizen login form (credentials) — calls /api/send-otp
+    const citizenForm = document.getElementById('citizen-login-form');
+    if (citizenForm) {
+      citizenForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('citizen-name').value.trim();
+        const mobile = document.getElementById('citizen-mobile').value.trim();
+        const submitBtn = citizenForm.querySelector('.btn-login');
+
+        // Basic client-side mobile validation
+        if (!/^[6-9][0-9]{9}$/.test(mobile)) {
+          alert('Please enter a valid 10-digit Indian mobile number.');
+          return;
+        }
+
+        this.tempCitizenData = { citizenName: name, mobile: mobile };
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending OTP...';
+
+        try {
+          const resp = await fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile })
+          });
+          const result = await resp.json();
+
+          if (result.success) {
+            this.loginPhase = 'otp';
+            this.startResendTimer('customer');
+            this.renderShell();
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = store.t('enterCitizenPortal');
+            alert('Failed to send OTP: ' + result.message);
+          }
+        } catch (err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = store.t('enterCitizenPortal');
+          alert('Network error. Please check your connection.');
+        }
+      });
+    }
+
+    // 2. Citizen OTP verification form — calls /api/verify-otp
+    const citizenOtpForm = document.getElementById('citizen-otp-form');
+    if (citizenOtpForm) {
+      citizenOtpForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const otpVal = document.getElementById('citizen-otp').value.trim();
+        const errorEl = document.getElementById('citizen-otp-error');
+        const submitBtn = citizenOtpForm.querySelector('.btn-login');
+
+        if (!otpVal.match(/^[0-9]{6}$/)) {
+          if (errorEl) {
+            errorEl.innerText = '❌ Please enter a valid 6-digit OTP.';
+            errorEl.style.display = 'block';
+          }
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
+
+        try {
+          const resp = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: this.tempCitizenData.mobile, otp: otpVal })
+          });
+          const result = await resp.json();
+
+          if (result.success) {
+            if (errorEl) errorEl.style.display = 'none';
+            store.userToken = this.tempCitizenData;
+            store.login('customer');
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪';
+            if (errorEl) {
+              errorEl.innerText = '❌ ' + result.message;
+              errorEl.style.display = 'block';
+            }
+          }
+        } catch (err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪';
+          if (errorEl) {
+            errorEl.innerText = '❌ Network error. Please try again.';
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    // 3. Citizen Resend OTP button — re-calls /api/send-otp
+    const citizenResendBtn = document.getElementById('citizen-resend-btn');
+    if (citizenResendBtn) {
+      citizenResendBtn.addEventListener('click', async () => {
+        citizenResendBtn.disabled = true;
+        citizenResendBtn.textContent = 'Sending...';
+        try {
+          const resp = await fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: this.tempCitizenData.mobile })
+          });
+          const result = await resp.json();
+          if (result.success) {
+            this.startResendTimer('customer');
+            this.renderShell();
+          } else {
+            alert('Failed to resend OTP: ' + result.message);
+            citizenResendBtn.disabled = false;
+            citizenResendBtn.textContent = 'Resend OTP 🔄';
+          }
+        } catch (err) {
+          alert('Network error. Please try again.');
+          citizenResendBtn.disabled = false;
+          citizenResendBtn.textContent = 'Resend OTP 🔄';
+        }
+      });
+    }
+
+    // 4. Employee login form (credentials)
+    const employeeForm = document.getElementById('employee-login-form');
+    if (employeeForm) {
+      employeeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('employee-id').value.trim();
+        const password = document.getElementById('employee-password').value.trim();
+        const errorEl = document.getElementById('employee-login-error');
+        
+        if (id && password) {
+          if (errorEl) errorEl.style.display = 'none';
+          this.tempEmployeeData = { id };
+          
+          // Trigger Employee MFA OTP step
+          this.loginPhase = 'otp';
+          this.startResendTimer('employee');
+          this.renderShell();
+        } else {
+          if (errorEl) {
+            errorEl.innerText = store.language === 'hi' ? 'कृपया दोनों आईडी और पासवर्ड दर्ज करें।' : 'Please enter both Staff ID and Password.';
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    // 5. Employee OTP verification form
+    const employeeOtpForm = document.getElementById('employee-otp-form');
+    if (employeeOtpForm) {
+      employeeOtpForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const otpVal = document.getElementById('employee-otp').value.trim();
+        const errorEl = document.getElementById('employee-otp-error');
+        
+        // Accept any 6-digit code for demo
+        if (otpVal.match(/^[0-9]{6}$/)) {
+          if (errorEl) errorEl.style.display = 'none';
+          store.login('employee');
+        } else {
+          if (errorEl) {
+            errorEl.innerText = store.language === 'hi' ? '❌ अमान्य एमएफए कोड। कृपया 6 अंकों का कोड दर्ज करें।' : '❌ Invalid MFA Code. Please enter a 6-digit code.';
+            errorEl.style.display = 'block';
+          }
+        }
+      });
+    }
+
+    // 6. Employee Resend OTP button
+    const employeeResendBtn = document.getElementById('employee-resend-btn');
+    if (employeeResendBtn) {
+      employeeResendBtn.addEventListener('click', () => {
+        this.startResendTimer('employee');
+        this.renderShell();
+      });
+    }
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        store.toggleTheme();
+      });
+    }
+
+    const langSelect = document.getElementById('gateway-lang-select');
+    if (langSelect) {
+      langSelect.addEventListener('change', (e) => {
+        store.setLanguage(e.target.value);
+      });
+    }
+  }
+
+  attachCitizenShellEvents() {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        store.logout();
+      });
+    }
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        store.toggleTheme();
+      });
+    }
+
+    const langSelect = document.getElementById('citizen-lang-select');
+    if (langSelect) {
+      langSelect.addEventListener('change', (e) => {
+        store.setLanguage(e.target.value);
+      });
+    }
   }
 
   initVisionEngine() {
@@ -284,7 +862,7 @@ class DakDrishtiApp {
                 <h4 class="card-title" style="font-size: 0.95rem;">
                   <span>🚨</span> Real-time AI Event Stream
                 </h4>
-                <span class="badge badge-red" id="active-alert-count">3 Alerts</span>
+                <span class="badge badge-red" id="active-alert-count">${store.alerts.length} Alert${store.alerts.length !== 1 ? 's' : ''}</span>
               </div>
 
               <div class="alert-feed-list" id="alert-feed-container">
@@ -452,6 +1030,22 @@ class DakDrishtiApp {
       });
     }
 
+    // Logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        store.logout();
+      });
+    }
+
+    // Language switcher
+    const langSelect = document.getElementById('admin-lang-select');
+    if (langSelect) {
+      langSelect.addEventListener('change', (e) => {
+        store.setLanguage(e.target.value);
+      });
+    }
+
     // Tier dropdown
     const tierSelect = document.getElementById('global-tier-select');
     if (tierSelect) {
@@ -473,7 +1067,19 @@ class DakDrishtiApp {
 
   listenToState() {
     store.subscribe((event, data) => {
-      if (event === 'HEALTH_UPDATED') {
+      if (event === 'LOGIN_STATE_CHANGED' || event === 'LANGUAGE_CHANGED') {
+        if (store.userRole === null) {
+          this.loginStep.customer = 'form';
+          this.loginStep.employee = 'form';
+          this.otpCode.customer = '';
+          this.otpCode.employee = '';
+          this.resendTimer.customer = 0;
+          this.resendTimer.employee = 0;
+          if (this.timerIntervals.customer) { clearInterval(this.timerIntervals.customer); this.timerIntervals.customer = null; }
+          if (this.timerIntervals.employee) { clearInterval(this.timerIntervals.employee); this.timerIntervals.employee = null; }
+        }
+        this.renderShell();
+      } else if (event === 'HEALTH_UPDATED') {
         const badge = document.getElementById('mysql-status-badge');
         const dot = document.getElementById('mysql-status-dot');
         const text = document.getElementById('mysql-status-text');
@@ -550,6 +1156,25 @@ class DakDrishtiApp {
       if (oEl) {
         oEl.innerText = counter.operatorPresent ? 'Present' : 'Unattended';
         oEl.style.color = counter.operatorPresent ? '#34D399' : '#EF4444';
+      }
+
+      // Update live global ticker banner
+      const tickerText = document.getElementById('ticker-text');
+      const tickerBadge = document.getElementById('ticker-sla-badge');
+      if (tickerText) {
+        const activeCounters = store.counters.filter(c => c.status !== 'closed' && c.operatorPresent).length;
+        const totalQueue = store.counters.reduce((s, c) => s + c.queueCount, 0);
+        const avgTatSecs = store.counters.reduce((s, c) => s + c.servingCustomerDwellSec, 0) / store.counters.length;
+        const avgTatMins = (avgTatSecs / 60).toFixed(1);
+        const slaOk = store.counters.filter(c => c.queueCount <= 6).length;
+        const slaScore = ((slaOk / store.counters.length) * 100).toFixed(1);
+        const slaColor = parseFloat(slaScore) >= 90 ? 'badge-green' : 'badge-amber';
+        tickerText.innerHTML = `<strong>Real-time Status:</strong> ${activeCounters} of ${store.counters.length} counters active • ${totalQueue} citizens in queue • Avg dwell time: <strong>${avgTatMins} mins</strong>`;
+        if (tickerBadge) {
+          tickerBadge.className = `badge ${slaColor}`;
+          tickerBadge.style.fontFamily = 'var(--font-mono)';
+          tickerBadge.innerText = `SLA: ${slaScore}%`;
+        }
       }
     }, 1000);
   }

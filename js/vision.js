@@ -28,43 +28,29 @@ export class VisionIntelligenceEngine {
         // Counter 1: Speed Post
         counterName: 'Counter 01 - Speed Post & Domestic Mail',
         operator: { x: 380, y: 160, w: 90, h: 140, active: true, title: 'Operator: R. Dayal' },
-        serviceCustomer: { x: 380, y: 340, w: 85, h: 150, id: 'A-108', dwellSec: 145 },
-        queue: [
-          { x: 380, y: 520, w: 75, h: 130, id: 'A-109', waitSec: 180, priority: true },
-          { x: 380, y: 640, w: 75, h: 130, id: 'A-110', waitSec: 120, priority: false },
-          { x: 380, y: 750, w: 75, h: 130, id: 'A-111', waitSec: 60, priority: false }
-        ]
+        serviceCustomer: null,
+        queue: []
       },
       2: {
         // Counter 2: Parcel COD
         counterName: 'Counter 02 - Express Parcel & COD',
         operator: { x: 380, y: 160, w: 90, h: 140, active: true, title: 'Operator: P. Sharma' },
-        serviceCustomer: { x: 380, y: 340, w: 85, h: 150, id: 'B-204', dwellSec: 210 },
-        queue: [
-          { x: 380, y: 530, w: 75, h: 130, id: 'B-205', waitSec: 150, priority: false }
-        ]
+        serviceCustomer: null,
+        queue: []
       },
       3: {
-        // Counter 3: POSB Banking (Congested)
+        // Counter 3: POSB Banking
         counterName: 'Counter 03 - POSB Banking & IPPB',
         operator: { x: 380, y: 160, w: 90, h: 140, active: true, title: 'Operator: V. Nath' },
-        serviceCustomer: { x: 380, y: 340, w: 85, h: 150, id: 'C-312', dwellSec: 390 },
-        queue: [
-          { x: 380, y: 510, w: 75, h: 130, id: 'C-313', waitSec: 360, priority: false },
-          { x: 380, y: 610, w: 75, h: 130, id: 'C-314', waitSec: 240, priority: false },
-          { x: 380, y: 700, w: 75, h: 130, id: 'C-315', waitSec: 180, priority: false },
-          { x: 380, y: 780, w: 75, h: 130, id: 'C-316', waitSec: 90, priority: false }
-        ]
+        serviceCustomer: null,
+        queue: []
       },
       4: {
         // Counter 4: Aadhaar & Citizen Services
         counterName: 'Counter 04 - Aadhaar & Citizen Services',
         operator: { x: 380, y: 160, w: 90, h: 140, active: true, title: 'Operator: Anita K.' },
-        serviceCustomer: { x: 380, y: 340, w: 85, h: 150, id: 'D-407', dwellSec: 280 },
-        queue: [
-          { x: 380, y: 520, w: 75, h: 130, id: 'D-408', waitSec: 210, priority: false },
-          { x: 380, y: 640, w: 75, h: 130, id: 'D-409', waitSec: 90, priority: false }
-        ]
+        serviceCustomer: null,
+        queue: []
       }
     };
   }
@@ -252,7 +238,8 @@ export class VisionIntelligenceEngine {
       ctx.fillStyle = '#D97706';
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`ZONE: QUEUE_AREA [Occupancy: ${counterState.queueCount + 1}]`, 348, height * 0.52 + 18);
+      const isServing = counterState.servingToken && counterState.servingToken !== 'None';
+      ctx.fillText(`ZONE: QUEUE_AREA [Occupancy: ${counterState.queueCount + (isServing ? 1 : 0)}]`, 348, height * 0.52 + 18);
     }
 
     // 4. Draw Operator behind desk
@@ -278,16 +265,18 @@ export class VisionIntelligenceEngine {
     }
 
     // 5. Draw Currently Serviced Customer at Counter Window
-    const custX = width / 2;
-    const custY = height * 0.54 + Math.sin(this.simulatedTime * 1.5) * 2;
-    this.drawPersonSilhouette(ctx, custX, custY, '#B91C1C', `Token: ${counterState.servingToken}`);
+    if (counterState.servingToken && counterState.servingToken !== 'None') {
+      const custX = width / 2;
+      const custY = height * 0.54 + Math.sin(this.simulatedTime * 1.5) * 2;
+      this.drawPersonSilhouette(ctx, custX, custY, '#B91C1C', `Token: ${counterState.servingToken}`);
 
-    if (this.showBoundingBoxes) {
-      const dwellMins = Math.floor(counterState.servingCustomerDwellSec / 60);
-      const dwellSecs = counterState.servingCustomerDwellSec % 60;
-      const dwellLabel = `Dwell: ${dwellMins}m ${dwellSecs}s (TAT)`;
-      const boxColor = counterState.servingCustomerDwellSec > counterState.slaThresholdSec ? '#EF4444' : '#3B82F6';
-      this.drawAIBoundingBox(ctx, custX - 38, custY - 70, 76, 120, `Customer #${counterState.servingToken} • ${dwellLabel}`, boxColor, '96.2% Conf');
+      if (this.showBoundingBoxes) {
+        const dwellMins = Math.floor(counterState.servingCustomerDwellSec / 60);
+        const dwellSecs = counterState.servingCustomerDwellSec % 60;
+        const dwellLabel = `Dwell: ${dwellMins}m ${dwellSecs}s (TAT)`;
+        const boxColor = counterState.servingCustomerDwellSec > counterState.slaThresholdSec ? '#EF4444' : '#3B82F6';
+        this.drawAIBoundingBox(ctx, custX - 38, custY - 70, 76, 120, `Customer #${counterState.servingToken} • ${dwellLabel}`, boxColor, '96.2% Conf');
+      }
     }
 
     // 6. Draw Waiting Queue Customers in line
