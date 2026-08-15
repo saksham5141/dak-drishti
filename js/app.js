@@ -111,7 +111,7 @@ class DakDrishtiApp {
           <div class="role-select-label">${store.t('selectYourRole')}</div>
           
           <div class="role-card role-citizen" data-role="customer">
-            <div class="role-card-icon">👥</div>
+            <div class="role-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
             <div class="role-card-info">
               <h3>${store.t('iAmCitizen')}</h3>
               <p>${store.t('citizenRoleDesc')}</p>
@@ -124,7 +124,7 @@ class DakDrishtiApp {
           </div>
 
           <div class="role-card role-employee" data-role="employee">
-            <div class="role-card-icon">👮</div>
+            <div class="role-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
             <div class="role-card-info">
               <h3>${store.t('iAmEmployee')}</h3>
               <p>${store.t('employeeRoleDesc')}</p>
@@ -143,7 +143,7 @@ class DakDrishtiApp {
           <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
           <div class="login-card customer-card">
             <div class="login-card-header">
-              <div class="login-card-icon">📝</div>
+              <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
               <div class="login-card-title">
                 <h2>${store.language === 'hi' ? 'नया खाता पंजीकरण' : 'Create New Account'}</h2>
                 <p>${store.language === 'hi' ? 'डाक सेवा पोर्टल पंजीकरण' : 'Register for India Post Services'}</p>
@@ -209,7 +209,7 @@ class DakDrishtiApp {
             <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
             <div class="login-card customer-card">
               <div class="login-card-header">
-                <div class="login-card-icon">👥</div>
+                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
                 <div class="login-card-title">
                   <h2>${store.t('citizenPortal')}</h2>
                   <p>Book E-Tokens, check queue sizes & leave feedback</p>
@@ -274,7 +274,7 @@ class DakDrishtiApp {
             <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
             <div class="login-card employee-card">
               <div class="login-card-header">
-                <div class="login-card-icon">👮</div>
+                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
                 <div class="login-card-title">
                   <h2>${store.t('employeeConsole')}</h2>
                   <p>Access AI Edge Vision, digital twin & command center</p>
@@ -337,7 +337,7 @@ class DakDrishtiApp {
           <a href="#" class="login-back-link" id="back-to-credentials">← ${store.language === 'hi' ? 'लॉगिन पर वापस जाएँ' : 'Back to Login'}</a>
           <div class="login-card employee-card">
             <div class="login-card-header">
-              <div class="login-card-icon">🔑</div>
+              <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
               <div class="login-card-title">
                 <h2>${store.t('resetPinTitle')}</h2>
                 <p>${store.t('resetPinDesc')}</p>
@@ -370,7 +370,7 @@ class DakDrishtiApp {
             <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
             <div class="login-card customer-card">
               <div class="login-card-header">
-                <div class="login-card-icon">🔑</div>
+                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
                 <div class="login-card-title">
                   <h2>${store.language === 'hi' ? 'नागरिक सत्यापन' : 'Citizen Verification'}</h2>
                   <p>${store.language === 'hi' ? 'सुरक्षित प्रमाणीकरण' : 'Secure Authentication'}</p>
@@ -406,7 +406,7 @@ class DakDrishtiApp {
             <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
             <div class="login-card employee-card">
               <div class="login-card-header">
-                <div class="login-card-icon">🔒</div>
+                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
                 <div class="login-card-title">
                   <h2>MFA Verification</h2>
                   <p>SecurMail Authentication</p>

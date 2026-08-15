@@ -545,12 +545,21 @@ h1, h2, h3, h4, h5, h6 {
 .role-card-icon {
   width: 48px;
   height: 48px;
-  background: #FEE2E2;
+  background: #FFFFFF;
+  border: 1px solid var(--post-gold);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  padding: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.role-card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .role-card-title {
@@ -597,7 +606,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .login-card-icon {
-  font-size: 1.8rem;
+  width: 50px;
+  height: 50px;
+  background: #FFFFFF;
+  border: 1px solid var(--post-gold);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.login-card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .login-card-title h2 {
