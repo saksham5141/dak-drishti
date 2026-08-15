@@ -110,8 +110,13 @@ export class DashboardHierarchyManager {
             </div>
 
             <!-- Call Token Button with Voice Announcement -->
-            <button id="btn-call-next-token" class="btn btn-primary btn-lg" style="width: 100%; margin-bottom: 10px;">
-              📢 Call Next Token (🔊 Voice Chime)
+            <button id="btn-call-next-token" class="btn btn-primary btn-lg" style="width: 100%; margin-bottom: 8px;">
+              📢 Call Next Token (Hindi & English Voice)
+            </button>
+
+            <!-- Re-announce Token in Hindi -->
+            <button id="btn-announce-hindi" class="btn btn-secondary" style="width: 100%; margin-bottom: 10px; border-color: #F59E0B; background: #FEF3C7; color: #92400E; font-weight: 700;">
+              🇮🇳 Re-announce in Hindi (हिंदी में टोकन पुकारें)
             </button>
 
             <button id="btn-complete-service" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">
@@ -224,6 +229,18 @@ export class DashboardHierarchyManager {
           speechService.announceToken(calledToken.id, this.selectedCounterId, `C-0${this.selectedCounterId}`);
         } else {
           alert('No more waiting tokens in this queue!');
+        }
+      });
+    }
+
+    const btnAnnounceHindi = document.getElementById('btn-announce-hindi');
+    if (btnAnnounceHindi) {
+      btnAnnounceHindi.addEventListener('click', () => {
+        const counter = store.counters.find(c => c.id === this.selectedCounterId);
+        if (counter && counter.servingToken && counter.servingToken !== 'None') {
+          speechService.announceTokenInHindi(counter.servingToken, this.selectedCounterId);
+        } else {
+          alert('No token currently being served at this desk. Call next token first!');
         }
       });
     }

@@ -113,12 +113,12 @@ export class CitizenPortalManager {
 
             <div class="form-group">
               <label class="form-label">${store.t('citizenNameLabel')}</label>
-              <input type="text" id="token-name" class="form-input" placeholder="e.g. Sumanth Verma" value="Sumanth Verma" required />
+              <input type="text" id="token-name" class="form-input" placeholder="Full Name" required />
             </div>
 
             <div class="form-group">
               <label class="form-label">${store.t('mobileLabel')}</label>
-              <input type="tel" id="token-mobile" class="form-input" placeholder="e.g. 9876543210" value="9876543210" pattern="[0-9]{10}" required />
+              <input type="tel" id="token-mobile" class="form-input" placeholder="10-Digit Mobile Number" pattern="[0-9]{10}" required />
             </div>
 
             <div class="form-group" style="background: rgba(245, 124, 0, 0.08); border: 1px solid rgba(245, 124, 0, 0.25); border-radius: var(--radius-md); padding: 12px;">
@@ -147,7 +147,7 @@ export class CitizenPortalManager {
 
   getUserTokenPassHtml() {
     const token = store.userToken;
-    if (!token) {
+    if (!token || !token.id) {
       return `
         <div style="text-align: center; padding: 48px 20px;">
           <div style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;">🎫</div>

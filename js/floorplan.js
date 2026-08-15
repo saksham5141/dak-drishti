@@ -102,18 +102,18 @@ export class DigitalTwinVisualizer {
       <div class="twin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div>
           <h3 style="display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 800;">
-            <span style="color: var(--post-red);">🏛️</span> Post Office Floorplan Digital Twin (Industry 4.0)
+            <span style="color: var(--post-red);">🏛️</span> Post Office Floorplan & Counter Queue Layout
           </h3>
           <p style="font-size: 0.78rem; color: var(--text-muted);">
-            Real-time IoT & AI Vision Spatial Occupancy Mesh • Connaught Place HPO (110002)
+            Real-time Post Office Counter Occupancy & Live Queue Status • Connaught Place HPO (110002)
           </p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <button id="btn-trigger-rebalance" class="btn btn-warning btn-sm">
-            ⚡ 1-Click Auto Rebalancer
+          <button id="btn-trigger-rebalance" class="btn btn-primary btn-sm">
+            ⚡ Counter Load Rebalancer
           </button>
           <span class="badge badge-green" style="font-family: var(--font-mono);">
-            🟢 SENSORS ACTIVE (14 IoT NODES)
+            🟢 ALL COUNTERS ACTIVE
           </span>
         </div>
       </div>

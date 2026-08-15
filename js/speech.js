@@ -1,12 +1,26 @@
 /**
  * DakDrishti 4.0 - Multi-lingual Audio Chime & Speech Synthesis Engine
  * Generates Post Office Hall announcements in Hindi & English
+ * Department of Posts, Ministry of Communications, Govt. of India
  */
 
 class AudioAnnouncementService {
   constructor() {
     this.synth = window.speechSynthesis || null;
     this.audioCtx = null;
+    this.voices = [];
+
+    if (this.synth) {
+      this.loadVoices();
+      if (typeof this.synth.onvoiceschanged !== 'undefined') {
+        this.synth.onvoiceschanged = () => this.loadVoices();
+      }
+    }
+  }
+
+  loadVoices() {
+    if (!this.synth) return;
+    this.voices = this.synth.getVoices() || [];
   }
 
   initAudioContext() {
@@ -34,7 +48,7 @@ class AudioAnnouncementService {
       const gain1 = this.audioCtx.createGain();
       osc1.type = 'sine';
       osc1.frequency.setValueAtTime(587.33, now); // D5
-      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.setValueAtTime(0.35, now);
       gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
       osc1.connect(gain1);
       gain1.connect(this.audioCtx.destination);
@@ -46,7 +60,7 @@ class AudioAnnouncementService {
       const gain2 = this.audioCtx.createGain();
       osc2.type = 'sine';
       osc2.frequency.setValueAtTime(880.0, now + 0.15); // A5
-      gain2.gain.setValueAtTime(0.35, now + 0.15);
+      gain2.gain.setValueAtTime(0.4, now + 0.15);
       gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
       osc2.connect(gain2);
       gain2.connect(this.audioCtx.destination);
@@ -57,52 +71,127 @@ class AudioAnnouncementService {
     }
   }
 
-  // Speak token announcement
-  announceToken(tokenNum, counterNum, counterCode) {
+  // Helper to convert token string into phonetically clear Hindi text
+  getHindiTokenPhrasing(tokenNum, counterNum) {
+    const prefixMap = {
+      'A': 'ए',
+      'B': 'बी',
+      'C': 'सी',
+      'D': 'डी',
+      'E': 'ई',
+      'F': 'एफ'
+    };
+
+    const digitHindiMap = {
+      '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार',
+      '5': 'पांच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ'
+    };
+
+    const parts = String(tokenNum).split('-');
+    const prefixChar = parts[0] ? parts[0].toUpperCase() : '';
+    const prefixHindi = prefixMap[prefixChar] || prefixChar;
+    const numDigits = parts[1] || '';
+
+    let numHindi = '';
+    const numInt = parseInt(numDigits, 10);
+    if (!isNaN(numInt) && numInt >= 100 && numInt < 200) {
+      const rem = numInt % 100;
+      if (rem === 0) {
+        numHindi = 'एक सौ';
+      } else {
+        const remDigits = String(rem).padStart(2, '0');
+        const remHindi = remDigits.split('').map(d => digitHindiMap[d] || d).join(' ');
+        numHindi = `एक सौ ${remHindi}`;
+      }
+    } else {
+      numHindi = numDigits.split('').map(d => digitHindiMap[d] || d).join(' ');
+    }
+
+    const counterHindi = digitHindiMap[String(counterNum)] || counterNum;
+
+    return {
+      textDevanagari: `कृपया ध्यान दें। टोकन नंबर ${prefixHindi} ${numHindi}, काउंटर नंबर ${counterHindi} पर पधारें।`,
+      textPhonetic: `Kripya dhyan dein. Token number ${prefixChar} ${numDigits}, Counter number ${counterNum} par padharen.`
+    };
+  }
+
+  // Speak token announcement (Hindi first, then English)
+  announceToken(tokenNum, counterNum, counterCode, langMode = 'both') {
     this.playChime();
 
     if (!this.synth) return;
 
-    // Small delay after chime before speaking
+    if (!this.voices || this.voices.length === 0) {
+      this.loadVoices();
+    }
+
+    // Delay speech slightly after chime plays
     setTimeout(() => {
       try {
-        this.synth.cancel(); // Clear any pending speech
+        this.synth.cancel(); // Reset active speech queue
 
-        // Split token characters for clear articulation (e.g., A-104 -> "ए एक सौ चार" / "A 1 0 4")
-        const tokenChars = tokenNum.replace('-', ' ');
+        const hindiData = this.getHindiTokenPhrasing(tokenNum, counterNum);
+        const tokenCharsEn = tokenNum.replace('-', ' ');
+        const textEn = `Attention please. Token number ${tokenCharsEn}, please proceed to Counter number ${counterNum}.`;
 
-        // English Utterance
-        const textEn = `Token number ${tokenChars}, please proceed to Counter number ${counterNum}`;
+        const voices = this.voices.length > 0 ? this.voices : (this.synth.getVoices() || []);
+        
+        // Find best matching Hindi voice
+        const hindiVoice = voices.find(v => 
+          v.lang.toLowerCase().includes('hi') || 
+          v.name.toLowerCase().includes('hindi') || 
+          v.name.toLowerCase().includes('kalpana') ||
+          v.name.toLowerCase().includes('hemant') ||
+          v.name.toLowerCase().includes('india')
+        );
+
+        // Find best matching Indian/English voice
+        const englishVoice = voices.find(v => 
+          v.lang.toLowerCase().includes('en-in') || 
+          (v.lang.toLowerCase().includes('en') && v.name.toLowerCase().includes('india'))
+        );
+
+        // 1. Prepare Hindi Utterance
+        const uttHi = new SpeechSynthesisUtterance(hindiData.textDevanagari);
+        uttHi.lang = 'hi-IN';
+        uttHi.rate = 0.88;
+        uttHi.pitch = 1.0;
+        if (hindiVoice) {
+          uttHi.voice = hindiVoice;
+        }
+
+        // 2. Prepare English Utterance
         const uttEn = new SpeechSynthesisUtterance(textEn);
         uttEn.lang = 'en-IN';
-        uttEn.rate = 0.95;
+        uttEn.rate = 0.92;
         uttEn.pitch = 1.0;
+        if (englishVoice) {
+          uttEn.voice = englishVoice;
+        }
 
-        // Hindi Utterance
-        const textHi = `टोकन नंबर ${tokenChars}, काउंटर नंबर ${counterNum} पर पधारें`;
-        const uttHi = new SpeechSynthesisUtterance(textHi);
-        uttHi.lang = 'hi-IN';
-        uttHi.rate = 0.95;
-        uttHi.pitch = 1.05;
-
-        // Find best Hindi voice if available
-        const voices = this.synth.getVoices();
-        const hindiVoice = voices.find(v => v.lang.includes('hi') || v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('india'));
-        const englishVoice = voices.find(v => v.lang.includes('en-IN') || (v.lang.includes('en') && v.name.includes('India')));
-
-        if (hindiVoice) uttHi.voice = hindiVoice;
-        if (englishVoice) uttEn.voice = englishVoice;
-
-        // Speak Hindi first, then English
-        uttHi.onend = () => {
+        if (langMode === 'hi') {
+          this.synth.speak(uttHi);
+        } else if (langMode === 'en') {
           this.synth.speak(uttEn);
-        };
-
-        this.synth.speak(uttHi);
+        } else {
+          // Chain: Speak Hindi first, then English on completion
+          uttHi.onend = () => {
+            try { this.synth.speak(uttEn); } catch (e) {}
+          };
+          uttHi.onerror = () => {
+            try { this.synth.speak(uttEn); } catch (e) {}
+          };
+          this.synth.speak(uttHi);
+        }
       } catch (err) {
         console.warn('Speech synthesis error:', err);
       }
-    }, 450);
+    }, 400);
+  }
+
+  // Explicit Hindi Token Announcement Method
+  announceTokenInHindi(tokenNum, counterNum) {
+    this.announceToken(tokenNum, counterNum, `C-0${counterNum}`, 'hi');
   }
 }
 

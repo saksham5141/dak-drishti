@@ -36,9 +36,9 @@ export class AnalyticsReportManager {
         <div class="card-header" style="margin-bottom: 24px;">
           <div>
             <h3 class="card-title" style="font-size: 1.25rem;">
-              <span>📈</span> Industry 4.0 Predictive Analytics &amp; Performance Reports
+              <span>📈</span> Post Office Counter Performance & Queue Reports
             </h3>
-            <p class="card-subtitle">AI Footfall Forecasting, Anomaly Detection &amp; Automated Compliance Audit Reports</p>
+            <p class="card-subtitle">Footfall Analysis, Counter Service Efficiency & Daily Operational Compliance Reports</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button id="btn-export-csv" class="btn btn-secondary btn-sm">📥 Export CSV</button>

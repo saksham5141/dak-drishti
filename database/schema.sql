@@ -241,3 +241,12 @@ CREATE TABLE `predictive_rush_forecast` (
     `recommended_active_counters` INT NOT NULL DEFAULT 4,
     FOREIGN KEY (`office_id`) REFERENCES `post_offices`(`office_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `full_name` VARCHAR(150) NOT NULL,
+    `contact` VARCHAR(100) UNIQUE NOT NULL,
+    `role` VARCHAR(20) NOT NULL DEFAULT 'customer',
+    `password` VARCHAR(255) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

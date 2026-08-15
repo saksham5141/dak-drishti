@@ -76,12 +76,14 @@ def main():
         with open(schema_path, 'r', encoding='utf-8') as f:
             sql_script = f.read()
 
-        # Split statements by semicolon
         statements = [s.strip() for s in sql_script.split(';') if s.strip()]
         for stmt in statements:
-            if stmt.upper().startswith('DROP DATABASE') or stmt.upper().startswith('CREATE DATABASE') or stmt.upper().startswith('USE') or stmt.upper().startswith('CREATE TABLE'):
+            # Remove leading SQL comment lines
+            lines = [l for l in stmt.split('\n') if not l.strip().startswith('--')]
+            clean_stmt = '\n'.join(lines).strip()
+            if clean_stmt:
                 try:
-                    cursor.execute(stmt)
+                    cursor.execute(clean_stmt)
                 except Exception as ex:
                     print(f"  [Warning executing statement]: {ex}")
 
@@ -95,9 +97,11 @@ def main():
 
         seed_statements = [s.strip() for s in seed_script.split(';') if s.strip()]
         for stmt in seed_statements:
-            if stmt.upper().startswith('INSERT INTO') or stmt.upper().startswith('USE'):
+            lines = [l for l in stmt.split('\n') if not l.strip().startswith('--')]
+            clean_stmt = '\n'.join(lines).strip()
+            if clean_stmt:
                 try:
-                    cursor.execute(stmt)
+                    cursor.execute(clean_stmt)
                 except Exception as ex:
                     print(f"  [Warning executing seed statement]: {ex}")
 

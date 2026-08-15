@@ -9,6 +9,8 @@ import { DigitalTwinVisualizer } from './floorplan.js';
 import { CitizenPortalManager } from './citizen.js';
 import { DashboardHierarchyManager } from './dashboards.js';
 import { AnalyticsReportManager } from './analytics.js';
+import { captchaManager } from './captcha.js';
+
 
 class DakDrishtiApp {
   constructor() {
@@ -124,6 +126,71 @@ class DakDrishtiApp {
           </div>
         </div>
       `;
+    } else if (this.loginPhase === 'register') {
+      mainContentHtml = `
+        <div class="login-single-card-wrapper">
+          <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
+          <div class="login-card customer-card">
+            <div class="login-card-header">
+              <div class="login-card-icon">📝</div>
+              <div class="login-card-title">
+                <h2>${store.language === 'hi' ? 'नया खाता पंजीकरण' : 'Create New Account'}</h2>
+                <p>${store.language === 'hi' ? 'डाक सेवा पोर्टल पंजीकरण' : 'Register for India Post Services'}</p>
+              </div>
+            </div>
+            <form id="user-register-form" class="login-form">
+              <div id="register-error-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
+              <div id="register-success-msg" class="login-error-msg" style="display: none; text-align: center; background: #DCFCE7; color: #15803D; border-color: #86EFAC;"></div>
+
+              <div class="form-group">
+                <label for="reg-full-name">Full Name <span class="required-star">*</span></label>
+                <input type="text" id="reg-full-name" class="form-input" placeholder="Full Name" required>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-contact">Email or Mobile Number <span class="required-star">*</span></label>
+                <input type="text" id="reg-contact" class="form-input" placeholder="Email or Mobile Number" required>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-password">Password <span class="required-star">*</span></label>
+                <input type="password" id="reg-password" class="form-input" placeholder="Password" required>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-confirm-password">Confirm Password <span class="required-star">*</span></label>
+                <input type="password" id="reg-confirm-password" class="form-input" placeholder="Confirm Password" required>
+              </div>
+
+              <div class="captcha-container">
+                <div class="captcha-label">
+                  <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
+                </div>
+                <div class="captcha-widget-row">
+                  <div class="captcha-canvas-wrapper">
+                    <canvas id="register-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
+                  </div>
+                  <div class="captcha-action-btns">
+                    <button type="button" class="captcha-icon-btn" id="register-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
+                    <button type="button" class="captcha-icon-btn" id="register-captcha-audio" title="Listen CAPTCHA">🔊</button>
+                  </div>
+                </div>
+                <input type="text" id="register-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
+              </div>
+
+              <button type="submit" class="btn btn-login">
+                ${store.language === 'hi' ? 'खाता बनाएं 📝' : 'Create Account 📝'}
+              </button>
+
+              <div style="text-align: center; margin-top: 14px;">
+                <a href="#" id="goto-login-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">
+                  ${store.language === 'hi' ? 'पहले से पंजीकृत हैं? लॉगिन करें 🚪' : 'Already have an account? Log in here 🚪'}
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
     } else if (this.loginPhase === 'credentials') {
       if (this.selectedRole === 'customer') {
         mainContentHtml = `
@@ -138,17 +205,54 @@ class DakDrishtiApp {
                 </div>
               </div>
               <form id="citizen-login-form" class="login-form">
+                <div id="citizen-login-error" class="login-error-msg" style="display: none; text-align: center;"></div>
                 <div class="form-group">
                   <label for="citizen-name">${store.t('citizenName')} <span class="required-star">*</span></label>
-                  <input type="text" id="citizen-name" class="form-input" placeholder="e.g. Saksham Saraswat" required>
+                  <input type="text" id="citizen-name" class="form-input" placeholder="Full Name" required>
                 </div>
                 <div class="form-group">
-                  <label for="citizen-mobile">${store.t('citizenMobile')} <span class="required-star">*</span></label>
-                  <input type="tel" id="citizen-mobile" class="form-input" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required title="Please enter a valid 10-digit mobile number">
+                  <label for="citizen-mobile">Email or Mobile Number <span class="required-star">*</span></label>
+                  <input type="text" id="citizen-mobile" class="form-input" placeholder="Email or Mobile Number" required>
                 </div>
+                <div class="form-group">
+                  <label style="font-weight: 700; font-size: 0.85rem;">Select OTP Delivery Method</label>
+                  <div style="display: flex; gap: 8px; margin-top: 5px;">
+                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                      <input type="radio" name="otpChannelSelect" value="sms" checked> 📱 SMS
+                    </label>
+                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                      <input type="radio" name="otpChannelSelect" value="email"> 📧 Email
+                    </label>
+                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                      <input type="radio" name="otpChannelSelect" value="voice"> 📞 Voice Call
+                    </label>
+                  </div>
+                </div>
+
+                <div class="captcha-container">
+                  <div class="captcha-label">
+                    <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
+                  </div>
+                  <div class="captcha-widget-row">
+                    <div class="captcha-canvas-wrapper">
+                      <canvas id="citizen-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
+                    </div>
+                    <div class="captcha-action-btns">
+                      <button type="button" class="captcha-icon-btn" id="citizen-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
+                      <button type="button" class="captcha-icon-btn" id="citizen-captcha-audio" title="Listen CAPTCHA">🔊</button>
+                    </div>
+                  </div>
+                  <input type="text" id="citizen-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
+                </div>
+
                 <button type="submit" class="btn btn-login">
                   ${store.t('enterCitizenPortal')}
                 </button>
+                <div style="text-align: center; margin-top: 14px;">
+                  <a href="#" id="goto-register-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">
+                    ${store.language === 'hi' ? 'नया खाता? यहाँ पंजीकरण करें 📝' : 'Don\'t have an account? Register here 📝'}
+                  </a>
+                </div>
               </form>
             </div>
           </div>
@@ -165,25 +269,52 @@ class DakDrishtiApp {
                   <p>Access AI Edge Vision, digital twin & command center</p>
                 </div>
               </div>
+
+              <!-- Quick Demo Credentials Banner -->
+              <div style="background: rgba(211, 47, 47, 0.06); border: 1px dashed var(--post-red); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-primary);">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+                  <strong style="color: var(--post-red-dark); font-weight: 700;">🔑 Demo Credentials:</strong>
+                  <button type="button" id="autofill-demo-emp-btn" style="background: var(--post-red); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+                    ⚡ Auto-fill Demo Login
+                  </button>
+                </div>
+                <div>User ID: <strong>admin</strong> | Password: <strong>admin123</strong></div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px;">(MFA OTP: enter any 6-digit pin like <strong>123456</strong>)</div>
+              </div>
+
               <form id="employee-login-form" class="login-form">
                 <div id="employee-login-error" class="login-error-msg"></div>
                 <div class="form-group">
-                  <label for="employee-id">${store.t('staffId')} <span class="required-star">*</span></label>
-                  <input type="text" id="employee-id" class="form-input" placeholder="e.g. ADMIN123" required>
+                  <label for="employee-id">Email, Mobile or Staff ID <span class="required-star">*</span></label>
+                  <input type="text" id="employee-id" class="form-input" placeholder="e.g. admin or employee email" required>
                 </div>
                 <div class="form-group">
                   <label for="employee-password">${store.t('password')} <span class="required-star">*</span></label>
-                  <input type="password" id="employee-password" class="form-input" placeholder="••••••••" required>
+                  <input type="password" id="employee-password" class="form-input" placeholder="Password" required>
                   <div style="text-align: right; margin-top: 4px;">
                     <a href="#" id="employee-forgot-pin-link" style="font-size: 0.78rem; color: var(--post-red); font-weight: 600; text-decoration: none;">${store.t('forgotPin')}</a>
                   </div>
                 </div>
+
+                <div class="captcha-container">
+                  <div class="captcha-label">
+                    <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
+                  </div>
+                  <div class="captcha-widget-row">
+                    <div class="captcha-canvas-wrapper">
+                      <canvas id="employee-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
+                    </div>
+                    <div class="captcha-action-btns">
+                      <button type="button" class="captcha-icon-btn" id="employee-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
+                      <button type="button" class="captcha-icon-btn" id="employee-captcha-audio" title="Listen CAPTCHA">🔊</button>
+                    </div>
+                  </div>
+                  <input type="text" id="employee-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
+                </div>
+
                 <button type="submit" class="btn btn-login">
                   ${store.t('loginOperatorConsole')}
                 </button>
-                <div class="login-credentials-hint">
-                  ℹ️ <strong>${store.t('accessAlert')}</strong>
-                </div>
               </form>
             </div>
           </div>
@@ -204,12 +335,12 @@ class DakDrishtiApp {
             <form id="employee-forgot-pin-form" class="login-form">
               <div id="forgot-pin-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
               <div class="form-group">
-                <label for="reset-staff-id">${store.t('staffId')} <span class="required-star">*</span></label>
-                <input type="text" id="reset-staff-id" class="form-input" placeholder="e.g. ADMIN123" required>
+                <label for="reset-staff-id">Email or Mobile Number <span class="required-star">*</span></label>
+                <input type="text" id="reset-staff-id" class="form-input" placeholder="Email or Mobile Number" required>
               </div>
               <div class="form-group">
                 <label for="reset-contact">${store.t('registeredEmailMobile')} <span class="required-star">*</span></label>
-                <input type="text" id="reset-contact" class="form-input" placeholder="e.g. operator@indiapost.gov.in or 9876543210" required>
+                <input type="text" id="reset-contact" class="form-input" placeholder="Email or Mobile Number" required>
               </div>
               <button type="submit" class="btn btn-login">
                 ${store.t('sendResetLink')}
@@ -220,7 +351,9 @@ class DakDrishtiApp {
       `;
     } else if (this.loginPhase === 'otp') {
       if (this.selectedRole === 'customer') {
-        const maskedPhone = this.tempCitizenData?.mobile ? '+91 XXXXX' + this.tempCitizenData.mobile.slice(-4) : '+91 XXXXX1234';
+        const maskedPhone = this.tempCitizenData?.mobile ? (this.tempCitizenData.mobile.includes('@') ? this.tempCitizenData.mobile : '+91 XXXXX' + this.tempCitizenData.mobile.slice(-4)) : 'user@domain.com';
+        const channelLabel = this.tempCitizenData?.channel === 'email' ? '📧 Email OTP' : this.tempCitizenData?.channel === 'voice' ? '📞 Voice Call OTP' : '📱 SMS OTP';
+        const checkLabel = this.tempCitizenData?.channel === 'email' ? 'Email Inbox' : this.tempCitizenData?.channel === 'voice' ? 'Phone for incoming Voice Call' : 'SMS Messages';
         mainContentHtml = `
           <div class="login-single-card-wrapper">
             <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
@@ -233,8 +366,11 @@ class DakDrishtiApp {
                 </div>
               </div>
               <div class="otp-sent-info">
-                ${store.language === 'hi' ? 'सत्यापन कोड भेजा गया:' : '6-digit OTP code sent to'}<br/>
+                <span>${channelLabel} dispatched to:</span><br/>
                 <span class="otp-phone-mask">${maskedPhone}</span>
+                <div style="font-size: 0.78rem; margin-top: 5px; color: var(--color-success); font-weight: 600;">
+                  📲 Please check your ${checkLabel} for the 6-digit OTP code
+                </div>
               </div>
               <form id="citizen-otp-form" class="login-form" style="margin-top: 10px;">
                 <div id="citizen-otp-error" class="login-error-msg" style="text-align: center;"></div>
@@ -289,26 +425,23 @@ class DakDrishtiApp {
     }
 
     root.innerHTML = `
+      <div class="govt-top-strip">
+        <span>भारत सरकार | संचार मंत्रालय | डाक विभाग</span>
+        <span>Government of India | Ministry of Communications | Department of Posts</span>
+      </div>
       <div class="login-gateway-container">
-        <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 20;">
-          <select id="gateway-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+        <div style="position: absolute; top: 35px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 20;">
+          <select id="gateway-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); background: #FFFFFF; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
             <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
             <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
           </select>
-          <button id="theme-toggle-btn" class="control-btn" style="border-radius: var(--radius-md);" title="Toggle Dark/Light Mode">
-            🌓
-          </button>
         </div>
 
         <div class="login-brand-wrapper">
-          <div class="login-brand-logo">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="white"/>
-            </svg>
-          </div>
-          <h1>${store.t('appTitle')}</h1>
+          <div class="login-brand-logo">📮</div>
+          <h1>${store.language === 'hi' ? 'भारतीय डाक | डाक सेवा पोर्टल' : 'Department of Posts | India Post'}</h1>
           <p>${store.t('subTitle')}</p>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">${store.t('ministryOfCom')}</p>
+          <p style="font-size: 0.82rem; color: var(--post-red-dark); font-weight: 700; margin-top: 4px;">${store.t('ministryOfCom')}</p>
         </div>
         
         ${mainContentHtml}
@@ -319,17 +452,17 @@ class DakDrishtiApp {
   renderCitizenShell(root) {
     root.innerHTML = `
       <div class="app-container">
+        <div class="govt-top-strip">
+          <span>भारत सरकार | संचार मंत्रालय | डाक विभाग</span>
+          <span>Government of India | Ministry of Communications | Department of Posts</span>
+        </div>
         <!-- Top App Bar -->
         <header class="top-header">
           <div class="brand-section">
-            <div class="brand-logo">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="white"/>
-              </svg>
-            </div>
+            <div class="brand-logo">📮</div>
             <div class="brand-title">
               <h1>
-                डाक सेवा दृष्टि <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-secondary);">| ${store.t('appTitle')}</span>
+                भारतीय डाक <span style="font-weight: 400; font-size: 0.95rem; color: #FFFFFF;">| INDIA POST</span>
               </h1>
               <p>
                 <span>${store.t('citizenPortal')}</span> • <span>${store.t('deptOfPosts')}</span>
@@ -339,14 +472,11 @@ class DakDrishtiApp {
 
           <!-- Top Header Controls -->
           <div class="header-controls">
-            <select id="citizen-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+            <select id="citizen-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); background: #FFFFFF; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
               <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
               <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
             </select>
-            <button id="theme-toggle-btn" class="control-btn" title="Toggle Dark/Light Mode">
-              🌓
-            </button>
-            <button id="logout-btn" class="header-logout-btn">
+            <button id="logout-btn" class="control-btn" style="background: #FFFFFF; color: var(--post-red-dark); font-weight: 800;">
               ${store.t('exitPortal')}
             </button>
           </div>
@@ -380,18 +510,17 @@ class DakDrishtiApp {
   renderAdminShell(root) {
     root.innerHTML = `
       <div class="app-container">
+        <div class="govt-top-strip">
+          <span>भारत सरकार | संचार मंत्रालय | डाक विभाग</span>
+          <span>Government of India | Ministry of Communications | Department of Posts</span>
+        </div>
         <!-- Top App Bar -->
         <header class="top-header">
           <div class="brand-section">
-            <div class="brand-logo">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="white"/>
-              </svg>
-            </div>
+            <div class="brand-logo">📮</div>
             <div class="brand-title">
               <h1>
-                डाक सेवा दृष्टि <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-secondary);">| ${store.t('appTitle')}</span>
-                <span class="badge-i4">Industry 4.0 AI</span>
+                भारतीय डाक <span style="font-weight: 400; font-size: 0.95rem; color: #FFFFFF;">| INDIA POST</span>
               </h1>
               <p>
                 <span>${store.t('deptOfPosts')}</span> • <span>${store.t('ministryOfCom')}</span>
@@ -405,7 +534,7 @@ class DakDrishtiApp {
               🏛️ ${store.t('digitalTwin')}
             </button>
             <button class="nav-tab" data-section="vision-live">
-              📹 ${store.t('visionLive')}
+              📹 Live Counter Queue
             </button>
             <button class="nav-tab" data-section="citizen">
               👥 ${store.t('citizenAccess')}
@@ -420,25 +549,17 @@ class DakDrishtiApp {
 
           <!-- Top Header Controls -->
           <div class="header-controls">
-            <select id="admin-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-md); background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+            <select id="admin-lang-select" class="tier-select lang-select" style="font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); background: #FFFFFF; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
               <option value="en" ${store.language === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
               <option value="hi" ${store.language === 'hi' ? 'selected' : ''}>🇮🇳 हिन्दी</option>
             </select>
 
-            <div id="mysql-status-badge" class="live-indicator" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: #3B82F6;">
-              <span id="mysql-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #3B82F6;"></span>
+            <div id="mysql-status-badge" class="live-indicator" style="background: #FFFFFF; border-color: var(--color-success); color: var(--color-success);">
+              <span id="mysql-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-success);"></span>
               <span id="mysql-status-text">${store.t('mysqlStatus')}</span>
             </div>
 
-            <div class="live-indicator">
-              <div class="pulse-dot"></div>
-              <span>${store.t('edgeAiOnline')}</span>
-            </div>
-
-            <button id="theme-toggle-btn" class="control-btn" title="Toggle Dark/Light Mode">
-              🌓
-            </button>
-            <button id="logout-btn" class="header-logout-btn">
+            <button id="logout-btn" class="control-btn" style="background: #FFFFFF; color: var(--post-red-dark); font-weight: 800;">
               ${store.t('logout')}
             </button>
           </div>
@@ -501,6 +622,54 @@ class DakDrishtiApp {
   }
 
   attachLoginEvents() {
+    // Initialize CAPTCHAs for active form
+    if (this.loginPhase === 'register') {
+      captchaManager.createCaptcha('user-register-form', 'register-captcha-canvas');
+      const refreshBtn = document.getElementById('register-captcha-refresh');
+      if (refreshBtn) {
+        refreshBtn.onclick = () => captchaManager.createCaptcha('user-register-form', 'register-captcha-canvas');
+      }
+      const audioBtn = document.getElementById('register-captcha-audio');
+      if (audioBtn) {
+        audioBtn.onclick = () => captchaManager.speakCaptcha('user-register-form');
+      }
+    } else if (this.loginPhase === 'credentials' && this.selectedRole === 'customer') {
+      captchaManager.createCaptcha('citizen-login-form', 'citizen-captcha-canvas');
+      const refreshBtn = document.getElementById('citizen-captcha-refresh');
+      if (refreshBtn) {
+        refreshBtn.onclick = () => captchaManager.createCaptcha('citizen-login-form', 'citizen-captcha-canvas');
+      }
+      const audioBtn = document.getElementById('citizen-captcha-audio');
+      if (audioBtn) {
+        audioBtn.onclick = () => captchaManager.speakCaptcha('citizen-login-form');
+      }
+    } else if (this.loginPhase === 'credentials' && this.selectedRole === 'employee') {
+      captchaManager.createCaptcha('employee-login-form', 'employee-captcha-canvas');
+      const refreshBtn = document.getElementById('employee-captcha-refresh');
+      if (refreshBtn) {
+        refreshBtn.onclick = () => captchaManager.createCaptcha('employee-login-form', 'employee-captcha-canvas');
+      }
+      const audioBtn = document.getElementById('employee-captcha-audio');
+      if (audioBtn) {
+        audioBtn.onclick = () => captchaManager.speakCaptcha('employee-login-form');
+      }
+
+      const autofillBtn = document.getElementById('autofill-demo-emp-btn');
+      if (autofillBtn) {
+        autofillBtn.onclick = () => {
+          const idInput = document.getElementById('employee-id');
+          const passInput = document.getElementById('employee-password');
+          const captchaInput = document.getElementById('employee-captcha-input');
+          if (idInput) idInput.value = 'admin';
+          if (passInput) passInput.value = 'admin123';
+          const captchaData = captchaManager.getCaptchaData('employee-login-form');
+          if (captchaInput && captchaData && captchaData.code) {
+            captchaInput.value = captchaData.code;
+          }
+        };
+      }
+    }
+
     // 0. Role Selection Cards
     if (this.loginPhase === 'role-select') {
       const cards = document.querySelectorAll('.role-card');
@@ -539,47 +708,189 @@ class DakDrishtiApp {
       });
     }
 
+    // Link: Navigate to Register Page
+    const gotoRegisterBtn = document.getElementById('goto-register-link');
+    if (gotoRegisterBtn) {
+      gotoRegisterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.loginPhase = 'register';
+        this.renderShell();
+      });
+    }
+
+    // Link: Navigate to Login Page
+    const gotoLoginBtn = document.getElementById('goto-login-link');
+    if (gotoLoginBtn) {
+      gotoLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.loginPhase = 'credentials';
+        this.renderShell();
+      });
+    }
+
+    // Register Form Submit Handler
+    const registerForm = document.getElementById('user-register-form');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fullName = document.getElementById('reg-full-name').value.trim();
+        const contact = document.getElementById('reg-contact').value.trim();
+        const password = document.getElementById('reg-password').value.trim();
+        const confirmPassword = document.getElementById('reg-confirm-password').value.trim();
+        const captchaInput = document.getElementById('register-captcha-input')?.value.trim();
+        const captchaData = captchaManager.getCaptchaData('user-register-form');
+        const role = 'customer';
+        
+        const errorEl = document.getElementById('register-error-msg');
+        const successEl = document.getElementById('register-success-msg');
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+
+        if (errorEl) errorEl.style.display = 'none';
+        if (successEl) successEl.style.display = 'none';
+
+        if (password !== confirmPassword) {
+          if (errorEl) {
+            errorEl.innerText = '❌ Passwords do not match. Please verify.';
+            errorEl.style.display = 'block';
+          }
+          return;
+        }
+
+        if (!captchaManager.validateCaptcha('user-register-form', captchaInput)) {
+          if (errorEl) {
+            errorEl.innerText = '❌ Invalid CAPTCHA code. Please check and try again.';
+            errorEl.style.display = 'block';
+          }
+          captchaManager.createCaptcha('user-register-form', 'register-captcha-canvas');
+          const inputEl = document.getElementById('register-captcha-input');
+          if (inputEl) inputEl.value = '';
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fullName, contact, role, password, captchaToken: captchaData?.token, captchaInput })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            if (successEl) {
+              successEl.innerText = `✅ ${data.message || 'Registration successful! Saved to database.'}`;
+              successEl.style.display = 'block';
+            }
+            setTimeout(() => {
+              this.selectedRole = role;
+              if (role === 'customer') {
+                this.tempCitizenData = { citizenName: fullName, mobile: contact };
+                store.userToken = this.tempCitizenData;
+                store.login('customer');
+              } else {
+                this.tempEmployeeData = { id: contact, name: fullName };
+                store.login('employee');
+              }
+            }, 1200);
+          } else {
+            if (errorEl) {
+              errorEl.innerText = `❌ ${data.message || 'Registration failed'}`;
+              errorEl.style.display = 'block';
+            }
+            captchaManager.createCaptcha('user-register-form', 'register-captcha-canvas');
+          }
+        } catch (err) {
+          console.error('Registration API Error:', err);
+          if (errorEl) {
+            errorEl.innerText = '❌ Network error during registration. Please try again.';
+            errorEl.style.display = 'block';
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+    }
+
     // 1. Citizen login form (credentials)
     const citizenForm = document.getElementById('citizen-login-form');
     if (citizenForm) {
-      citizenForm.addEventListener('submit', (e) => {
+      citizenForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('citizen-name').value.trim();
         const mobile = document.getElementById('citizen-mobile').value.trim();
+        const channel = document.querySelector('input[name="otpChannelSelect"]:checked')?.value || 'sms';
+        const captchaInput = document.getElementById('citizen-captcha-input')?.value.trim();
+        const captchaData = captchaManager.getCaptchaData('citizen-login-form');
+        const errorEl = document.getElementById('citizen-login-error');
+        const submitBtn = citizenForm.querySelector('button[type="submit"]');
 
         if (!name) {
-          alert('Please enter your full name.');
+          if (errorEl) { errorEl.innerText = '❌ Please enter your full name.'; errorEl.style.display = 'block'; }
           return;
         }
 
-        if (!/^[0-9]{10}$/.test(mobile)) {
-          alert('Please enter a valid 10-digit mobile number.');
+        if (!mobile) {
+          if (errorEl) { errorEl.innerText = '❌ Please enter your Email or Mobile Number.'; errorEl.style.display = 'block'; }
           return;
         }
 
-        this.tempCitizenData = { citizenName: name, mobile: mobile };
+        if (!captchaManager.validateCaptcha('citizen-login-form', captchaInput)) {
+          if (errorEl) {
+            errorEl.innerText = '❌ Invalid CAPTCHA code. Please check and try again.';
+            errorEl.style.display = 'block';
+          }
+          captchaManager.createCaptcha('citizen-login-form', 'citizen-captcha-canvas');
+          const inputEl = document.getElementById('citizen-captcha-input');
+          if (inputEl) inputEl.value = '';
+          return;
+        }
 
-        // Attempt sending backend API call asynchronously without blocking UI phase transition
-        fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile })
-        }).catch(err => console.warn('Backend API /api/send-otp offline:', err));
+        if (errorEl) errorEl.style.display = 'none';
+        if (submitBtn) submitBtn.disabled = true;
 
-        // Immediately transition to OTP verification phase
-        this.loginPhase = 'otp';
-        this.startResendTimer('customer');
-        this.renderShell();
+        this.tempCitizenData = { citizenName: name, mobile: mobile, channel: channel };
+
+        try {
+          const res = await fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile, channel, captchaToken: captchaData?.token, captchaInput })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            if (errorEl) errorEl.style.display = 'none';
+            this.loginPhase = 'otp';
+            this.startResendTimer('customer');
+            this.renderShell();
+          } else {
+            if (errorEl) {
+              errorEl.innerText = `❌ ${data.message || 'Account not registered. Please register first.'}`;
+              errorEl.style.display = 'block';
+            }
+            captchaManager.createCaptcha('citizen-login-form', 'citizen-captcha-canvas');
+          }
+        } catch (err) {
+          console.error('API Error /api/send-otp:', err);
+          if (errorEl) {
+            errorEl.innerText = '❌ Backend connection error. Please try again.';
+            errorEl.style.display = 'block';
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
       });
     }
 
     // 2. Citizen OTP verification form
     const citizenOtpForm = document.getElementById('citizen-otp-form');
     if (citizenOtpForm) {
-      citizenOtpForm.addEventListener('submit', (e) => {
+      citizenOtpForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const otpVal = document.getElementById('citizen-otp').value.trim();
         const errorEl = document.getElementById('citizen-otp-error');
+        const submitBtn = citizenOtpForm.querySelector('button[type="submit"]');
 
         if (!otpVal.match(/^[0-9]{6}$/)) {
           if (errorEl) {
@@ -589,30 +900,61 @@ class DakDrishtiApp {
           return;
         }
 
-        // Fire-and-forget background verification attempt if API is live
-        fetch('/api/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile: this.tempCitizenData?.mobile || '', otp: otpVal })
-        }).catch(err => console.warn('Backend API /api/verify-otp offline:', err));
+        if (submitBtn) submitBtn.disabled = true;
 
-        // Complete user login immediately
-        if (errorEl) errorEl.style.display = 'none';
-        store.userToken = this.tempCitizenData;
-        store.login('customer');
+        try {
+          const res = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: this.tempCitizenData?.mobile || '', otp: otpVal })
+          });
+          
+          let data = {};
+          try { data = await res.json(); } catch (e) {}
+
+          if (res.ok && data.success) {
+            if (errorEl) errorEl.style.display = 'none';
+            store.userToken = this.tempCitizenData || { citizenName: 'Citizen User', mobile: '9876543210' };
+            store.login('customer');
+          } else {
+            if (errorEl) {
+              errorEl.innerText = `❌ ${data.message || 'Verification failed'}`;
+              errorEl.style.display = 'block';
+            }
+          }
+        } catch (err) {
+          console.error('API Error /api/verify-otp:', err);
+          if (errorEl) {
+            errorEl.innerText = '❌ Backend connection error. Please try again.';
+            errorEl.style.display = 'block';
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
       });
     }
 
     // 3. Citizen Resend OTP button
     const citizenResendBtn = document.getElementById('citizen-resend-btn');
     if (citizenResendBtn) {
-      citizenResendBtn.addEventListener('click', () => {
+      citizenResendBtn.addEventListener('click', async () => {
         if (this.tempCitizenData?.mobile) {
-          fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mobile: this.tempCitizenData.mobile })
-          }).catch(err => console.warn('Backend API /api/send-otp offline:', err));
+          try {
+            const res = await fetch('/api/send-otp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mobile: this.tempCitizenData.mobile, channel: this.tempCitizenData?.channel || 'sms' })
+            });
+            const data = await res.json();
+            const errorEl = document.getElementById('citizen-otp-error');
+            if (errorEl && data.message) {
+              errorEl.innerText = `ℹ️ ${data.message}`;
+              errorEl.style.color = 'var(--post-gold)';
+              errorEl.style.display = 'block';
+            }
+          } catch (err) {
+            console.warn('Backend API /api/send-otp offline:', err);
+          }
         }
         this.startResendTimer('customer');
         this.renderShell();
@@ -622,28 +964,73 @@ class DakDrishtiApp {
     // 4. Employee login form (credentials)
     const employeeForm = document.getElementById('employee-login-form');
     if (employeeForm) {
-      employeeForm.addEventListener('submit', (e) => {
+      employeeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('employee-id').value.trim();
         const password = document.getElementById('employee-password').value.trim();
+        const captchaInput = document.getElementById('employee-captcha-input')?.value.trim();
+        const captchaData = captchaManager.getCaptchaData('employee-login-form');
         const errorEl = document.getElementById('employee-login-error');
+        const submitBtn = employeeForm.querySelector('button[type="submit"]');
         
-        if (id && password) {
+        if (!id || !password) {
+          if (errorEl) {
+            errorEl.innerText = store.language === 'hi' ? 'कृपया ईमेल/मोबाइल और पासवर्ड दर्ज करें।' : 'Please enter Email or Mobile Number and Password.';
+            errorEl.style.display = 'block';
+          }
+          return;
+        }
+
+        if (!captchaManager.validateCaptcha('employee-login-form', captchaInput)) {
+          if (errorEl) {
+            errorEl.innerText = store.language === 'hi' ? '❌ अमान्य कैप्चा कोड। कृपया पुनः प्रयास करें।' : '❌ Invalid CAPTCHA code. Please check and try again.';
+            errorEl.style.display = 'block';
+          }
+          captchaManager.createCaptcha('employee-login-form', 'employee-captcha-canvas');
+          const inputEl = document.getElementById('employee-captcha-input');
+          if (inputEl) inputEl.value = '';
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contact: id, password, captchaToken: captchaData?.token, captchaInput })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            if (errorEl) errorEl.style.display = 'none';
+            this.tempEmployeeData = { id: data.user?.contact || id, name: data.user?.name || id };
+            
+            // Trigger Employee MFA OTP step
+            this.loginPhase = 'otp';
+            this.startResendTimer('employee');
+            this.renderShell();
+          } else {
+            if (errorEl) {
+              errorEl.innerText = `❌ ${data.message || 'Invalid credentials. Please register first.'}`;
+              errorEl.style.display = 'block';
+            }
+            captchaManager.createCaptcha('employee-login-form', 'employee-captcha-canvas');
+          }
+        } catch (err) {
+          console.error('Login API Error:', err);
+          // Fallback for offline demo
           if (errorEl) errorEl.style.display = 'none';
           this.tempEmployeeData = { id };
-          
-          // Trigger Employee MFA OTP step
           this.loginPhase = 'otp';
           this.startResendTimer('employee');
           this.renderShell();
-        } else {
-          if (errorEl) {
-            errorEl.innerText = store.language === 'hi' ? 'कृपया दोनों आईडी और पासवर्ड दर्ज करें।' : 'Please enter both Staff ID and Password.';
-            errorEl.style.display = 'block';
-          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
         }
       });
     }
+
 
     // 5. Employee OTP verification form
     const employeeOtpForm = document.getElementById('employee-otp-form');
@@ -798,14 +1185,14 @@ class DakDrishtiApp {
         <div class="card-header" style="margin-bottom: 16px;">
           <div>
             <h3 class="card-title">
-              <span style="color: var(--post-red);">📹</span> AI Vision & Multi-CCTV Counter Intelligence Hub
+              <span style="color: var(--post-red);">📹</span> CCTV Surveillance & Counter Monitoring Overview
             </h3>
             <p class="card-subtitle">
-              Live Edge Image Processing: Real-time Customer Detection, Queue Depth, Dwell Clocks & Anomaly Radar
+              Live Counter Video Feed, Automated Queue Detection & Dwell Clock Monitoring
             </p>
           </div>
           <span class="badge badge-green" style="font-family: var(--font-mono);">
-            ● 30 FPS • YOLO/TF.js INFERENCE STREAM
+            ● LIVE COUNTER FEED ACTIVE
           </span>
         </div>
 
@@ -867,24 +1254,23 @@ class DakDrishtiApp {
 
               <div class="vision-toggles">
                 <button id="toggle-bboxes-btn" class="toggle-chip active">
-                  <span>🟩 AI Bounding Boxes</span>
+                  <span>🟩 Detection Overlay</span>
                 </button>
                 <button id="toggle-heatmap-btn" class="toggle-chip">
-                  <span>🔥 Density Heatmap</span>
+                  <span>🔥 Queue Density Map</span>
                 </button>
                 <button id="toggle-queuezone-btn" class="toggle-chip active">
-                  <span>📐 Queue ROI Zone</span>
+                  <span>📐 Queue Boundary Zone</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Right: AI Live Alerts & Real-time Anomaly Stream -->
           <div class="vision-sidebar-panel">
             <div class="card">
               <div class="card-header">
                 <h4 class="card-title" style="font-size: 0.95rem;">
-                  <span>🚨</span> Real-time AI Event Stream
+                  <span>🔔</span> Counter Event Log
                 </h4>
                 <span class="badge badge-red" id="active-alert-count">${store.alerts.length} Alert${store.alerts.length !== 1 ? 's' : ''}</span>
               </div>
@@ -1093,12 +1479,9 @@ class DakDrishtiApp {
     store.subscribe((event, data) => {
       if (event === 'LOGIN_STATE_CHANGED' || event === 'LANGUAGE_CHANGED') {
         if (store.userRole === null) {
-          this.loginStep.customer = 'form';
-          this.loginStep.employee = 'form';
-          this.otpCode.customer = '';
-          this.otpCode.employee = '';
-          this.resendTimer.customer = 0;
-          this.resendTimer.employee = 0;
+          this.loginPhase = 'role-select';
+          this.selectedRole = null;
+          this.resendTimer = { customer: 0, employee: 0 };
           if (this.timerIntervals.customer) { clearInterval(this.timerIntervals.customer); this.timerIntervals.customer = null; }
           if (this.timerIntervals.employee) { clearInterval(this.timerIntervals.employee); this.timerIntervals.employee = null; }
         }
