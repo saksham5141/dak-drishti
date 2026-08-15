@@ -9,6 +9,9 @@ class AudioAnnouncementService {
     this.synth = window.speechSynthesis || null;
     this.audioCtx = null;
     this.voices = [];
+    this.selectedVoiceURI = localStorage.getItem('dak_speech_voice_uri') || null;
+    this.voicePitch = parseFloat(localStorage.getItem('dak_speech_pitch')) || 1.0;
+    this.voiceRate = parseFloat(localStorage.getItem('dak_speech_rate')) || 0.88;
 
     if (this.synth) {
       this.loadVoices();
@@ -19,8 +22,42 @@ class AudioAnnouncementService {
   }
 
   loadVoices() {
-    if (!this.synth) return;
+    if (!this.synth) return [];
     this.voices = this.synth.getVoices() || [];
+    return this.voices;
+  }
+
+  getAvailableHindiVoices() {
+    const voices = this.voices.length > 0 ? this.voices : (this.synth ? this.synth.getVoices() : []);
+    return voices.filter(v => 
+      v.lang.toLowerCase().includes('hi') || 
+      v.lang.toLowerCase().includes('en-in') || 
+      v.name.toLowerCase().includes('hindi') || 
+      v.name.toLowerCase().includes('kalpana') ||
+      v.name.toLowerCase().includes('hemant') ||
+      v.name.toLowerCase().includes('swara') ||
+      v.name.toLowerCase().includes('madhur') ||
+      v.name.toLowerCase().includes('india')
+    );
+  }
+
+  setVoice(voiceURI) {
+    this.selectedVoiceURI = voiceURI;
+    if (voiceURI) {
+      localStorage.setItem('dak_speech_voice_uri', voiceURI);
+    } else {
+      localStorage.removeItem('dak_speech_voice_uri');
+    }
+  }
+
+  setPitch(pitch) {
+    this.voicePitch = pitch;
+    localStorage.setItem('dak_speech_pitch', pitch);
+  }
+
+  setRate(rate) {
+    this.voiceRate = rate;
+    localStorage.setItem('dak_speech_rate', rate);
   }
 
   initAudioContext() {
@@ -136,14 +173,21 @@ class AudioAnnouncementService {
 
         const voices = this.voices.length > 0 ? this.voices : (this.synth.getVoices() || []);
         
-        // Find true matching Hindi voice
-        const hindiVoice = voices.find(v => 
-          v.lang.toLowerCase().startsWith('hi') || 
-          v.name.toLowerCase().includes('hindi') || 
-          v.name.toLowerCase().includes('kalpana') ||
-          v.name.toLowerCase().includes('hemant') ||
-          v.name.toLowerCase().includes('lekha')
-        );
+        // Find user selected voice or auto-detect true matching Hindi voice
+        let hindiVoice = null;
+        if (this.selectedVoiceURI) {
+          hindiVoice = voices.find(v => v.voiceURI === this.selectedVoiceURI || v.name === this.selectedVoiceURI);
+        }
+        if (!hindiVoice) {
+          hindiVoice = voices.find(v => 
+            v.lang.toLowerCase().startsWith('hi') || 
+            v.name.toLowerCase().includes('hindi') || 
+            v.name.toLowerCase().includes('kalpana') ||
+            v.name.toLowerCase().includes('hemant') ||
+            v.name.toLowerCase().includes('swara') ||
+            v.name.toLowerCase().includes('lekha')
+          );
+        }
 
         // Find best matching Indian/English voice
         const englishVoice = voices.find(v => 
@@ -152,11 +196,12 @@ class AudioAnnouncementService {
         );
 
         // 1. Prepare Hindi Utterance (Use Devanagari script if Hindi TTS voice exists, otherwise use phonetic Romanized Hindi)
-        const hindiSpeechText = hindiVoice ? hindiData.textDevanagari : hindiData.textPhonetic;
+        const isTrueHindiVoice = hindiVoice && (hindiVoice.lang.toLowerCase().includes('hi') || hindiVoice.name.toLowerCase().includes('hindi'));
+        const hindiSpeechText = isTrueHindiVoice ? hindiData.textDevanagari : hindiData.textPhonetic;
         const uttHi = new SpeechSynthesisUtterance(hindiSpeechText);
-        uttHi.lang = hindiVoice ? 'hi-IN' : 'en-IN';
-        uttHi.rate = 0.88;
-        uttHi.pitch = 1.0;
+        uttHi.lang = isTrueHindiVoice ? 'hi-IN' : 'en-IN';
+        uttHi.rate = this.voiceRate || 0.88;
+        uttHi.pitch = this.voicePitch || 1.0;
         if (hindiVoice) {
           uttHi.voice = hindiVoice;
         } else if (englishVoice) {
@@ -166,8 +211,8 @@ class AudioAnnouncementService {
         // 2. Prepare English Utterance
         const uttEn = new SpeechSynthesisUtterance(textEn);
         uttEn.lang = 'en-IN';
-        uttEn.rate = 0.92;
-        uttEn.pitch = 1.0;
+        uttEn.rate = this.voiceRate || 0.92;
+        uttEn.pitch = this.voicePitch || 1.0;
         if (englishVoice) {
           uttEn.voice = englishVoice;
         }

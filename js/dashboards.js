@@ -124,9 +124,17 @@ export class DashboardHierarchyManager {
             </button>
 
             <!-- Test Vision Operator Unattended Toggle -->
-            <button id="btn-toggle-presence" class="btn btn-secondary btn-sm" style="width: 100%;">
+            <button id="btn-toggle-presence" class="btn btn-secondary btn-sm" style="width: 100%; margin-bottom: 12px;">
               ${activeCounter.operatorPresent ? '⏸️ Simulate Operator Away (Step Away)' : '▶️ Resume Operator at Desk'}
             </button>
+
+            <!-- Voice Selection Settings -->
+            <div style="padding-top: 10px; border-top: 1px dashed var(--border-color);">
+              <label class="form-label" style="font-size: 0.78rem; font-weight: 700;">🎙️ Bot Hindi Voice Settings</label>
+              <select id="operator-voice-select" class="form-select" style="font-size: 0.8rem; padding: 6px 10px;">
+                <option value="">🤖 Auto-detect Best Hindi Voice</option>
+              </select>
+            </div>
           </div>
 
           <!-- Right: Active Queue & Token Flow for this Counter -->
@@ -277,14 +285,35 @@ export class DashboardHierarchyManager {
       });
     }
 
-    const btnPresence = document.getElementById('btn-toggle-presence');
-    if (btnPresence) {
-      btnPresence.addEventListener('click', () => {
-        const counter = store.counters.find(c => c.id === this.selectedCounterId);
-        if (counter) {
-          counter.operatorPresent = !counter.operatorPresent;
-          counter.idleDurationSec = 0;
-          this.renderTier1();
+    const btnTogglePresence = document.getElementById('btn-toggle-presence');
+    if (btnTogglePresence) {
+      btnTogglePresence.addEventListener('click', () => {
+        store.toggleOperatorPresence(this.selectedCounterId);
+      });
+    }
+
+    const voiceSelect = document.getElementById('operator-voice-select');
+    if (voiceSelect) {
+      const populateVoices = () => {
+        const availVoices = speechService.getAvailableHindiVoices();
+        const allVoices = speechService.voices.length > 0 ? speechService.voices : (window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+        const displayList = availVoices.length > 0 ? availVoices : allVoices;
+
+        voiceSelect.innerHTML = `<option value="">🤖 Auto-detect Best Hindi Voice</option>` +
+          displayList.map(v => `<option value="${v.voiceURI || v.name}" ${(speechService.selectedVoiceURI === v.voiceURI || speechService.selectedVoiceURI === v.name) ? 'selected' : ''}>${v.name} (${v.lang})</option>`).join('');
+      };
+
+      populateVoices();
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+      }
+
+      voiceSelect.addEventListener('change', (e) => {
+        speechService.setVoice(e.target.value);
+        if (e.target.value) {
+          const counter = store.counters.find(c => c.id === this.selectedCounterId);
+          const sampleToken = (counter && counter.servingToken && counter.servingToken !== 'None') ? counter.servingToken : 'A-101';
+          speechService.announceTokenInHindi(sampleToken, this.selectedCounterId);
         }
       });
     }
