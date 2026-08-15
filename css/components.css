@@ -994,3 +994,38 @@
   text-transform: uppercase;
 }
 
+/* Mobile Component Responsive Styles */
+@media (max-width: 768px) {
+  .cctv-stage {
+    aspect-ratio: 4 / 3;
+    min-height: 220px;
+  }
+  .cctv-stats-pill {
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .captcha-widget-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .captcha-canvas-wrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+  .captcha-canvas {
+    width: 100%;
+  }
+  .floorplan-stage {
+    min-height: 300px;
+    overflow-x: auto;
+  }
+  .citizen-pass-card {
+    padding: 16px 14px;
+    margin: 10px 0;
+  }
+  .token-big-display {
+    font-size: 2.2rem;
+  }
+}
+

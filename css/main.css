@@ -685,9 +685,164 @@ h1, h2, h3, h4, h5, h6 {
   border-top: 2px solid var(--post-gold);
 }
 
-/* Responsive */
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsive Engine (Official Govt Portal)
+   ========================================================================== */
+
 @media (max-width: 768px) {
-  .top-header { flex-wrap: wrap; padding: 8px 14px; }
-  .grid-cols-4, .grid-cols-3, .grid-cols-2 { grid-template-columns: 1fr; }
-  .app-main { padding: 12px; }
+  html, body {
+    font-size: 14px;
+    overflow-x: hidden !important;
+  }
+
+  /* Govt Top Strip */
+  .govt-top-strip {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .govt-top-strip span:last-child {
+    font-size: 0.68rem;
+  }
+
+  /* Main Top Header */
+  .top-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .brand-logo {
+    font-size: 1.1rem;
+    gap: 8px;
+  }
+  
+  .brand-title {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .brand-subtitle {
+    font-size: 0.68rem;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Navigation Bar / Tabs */
+  .nav-bar {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 12px;
+    background: #FFFFFF;
+    border-bottom: 2px solid var(--post-red);
+    box-shadow: var(--shadow-sm);
+    gap: 6px;
+  }
+
+  .nav-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-tab {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    border-radius: 20px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .nav-tab.active {
+    background: var(--post-red-dark);
+    color: #FFFFFF;
+  }
+
+  /* Layout & Cards */
+  .app-main {
+    padding: 10px 10px 30px 10px;
+  }
+
+  .grid-cols-4, .grid-cols-3, .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .card {
+    padding: 14px 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Mobile Touch Target Optimizations */
+  .btn, .form-input, .form-select, .role-card {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  /* Role Selection Mobile Screen */
+  .role-select-grid {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .role-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .role-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .role-card-title {
+    font-size: 0.98rem;
+  }
+
+  /* Tables Mobile Horizontal Scroll */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Footer Mobile */
+  .app-footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 14px 12px;
+    font-size: 0.72rem;
+  }
 }
