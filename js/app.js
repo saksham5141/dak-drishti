@@ -10,6 +10,7 @@ import { CitizenPortalManager } from './citizen.js';
 import { DashboardHierarchyManager } from './dashboards.js';
 import { AnalyticsReportManager } from './analytics.js';
 import { captchaManager } from './captcha.js';
+import { speechService } from './speech.js';
 
 
 class DakDrishtiApp {
@@ -32,6 +33,16 @@ class DakDrishtiApp {
   }
 
   init() {
+    // Unlock Audio & Speech Voices on first user gesture
+    const unlockAudio = () => {
+      speechService.initAudioContext();
+      speechService.loadVoices();
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+
     this.listenToState();
     this.renderShell();
   }

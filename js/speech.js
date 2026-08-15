@@ -136,13 +136,13 @@ class AudioAnnouncementService {
 
         const voices = this.voices.length > 0 ? this.voices : (this.synth.getVoices() || []);
         
-        // Find best matching Hindi voice
+        // Find true matching Hindi voice
         const hindiVoice = voices.find(v => 
-          v.lang.toLowerCase().includes('hi') || 
+          v.lang.toLowerCase().startsWith('hi') || 
           v.name.toLowerCase().includes('hindi') || 
           v.name.toLowerCase().includes('kalpana') ||
           v.name.toLowerCase().includes('hemant') ||
-          v.name.toLowerCase().includes('india')
+          v.name.toLowerCase().includes('lekha')
         );
 
         // Find best matching Indian/English voice
@@ -151,13 +151,16 @@ class AudioAnnouncementService {
           (v.lang.toLowerCase().includes('en') && v.name.toLowerCase().includes('india'))
         );
 
-        // 1. Prepare Hindi Utterance
-        const uttHi = new SpeechSynthesisUtterance(hindiData.textDevanagari);
-        uttHi.lang = 'hi-IN';
+        // 1. Prepare Hindi Utterance (Use Devanagari script if Hindi TTS voice exists, otherwise use phonetic Romanized Hindi)
+        const hindiSpeechText = hindiVoice ? hindiData.textDevanagari : hindiData.textPhonetic;
+        const uttHi = new SpeechSynthesisUtterance(hindiSpeechText);
+        uttHi.lang = hindiVoice ? 'hi-IN' : 'en-IN';
         uttHi.rate = 0.88;
         uttHi.pitch = 1.0;
         if (hindiVoice) {
           uttHi.voice = hindiVoice;
+        } else if (englishVoice) {
+          uttHi.voice = englishVoice;
         }
 
         // 2. Prepare English Utterance
@@ -178,8 +181,9 @@ class AudioAnnouncementService {
           uttHi.onend = () => {
             try { this.synth.speak(uttEn); } catch (e) {}
           };
-          uttHi.onerror = () => {
-            try { this.synth.speak(uttEn); } catch (e) {}
+          uttHi.onerror = (e) => {
+            console.warn('Hindi utterance error, falling back to English:', e);
+            try { this.synth.speak(uttEn); } catch (ex) {}
           };
           this.synth.speak(uttHi);
         }
