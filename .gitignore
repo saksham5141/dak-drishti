@@ -5,6 +5,7 @@ __pycache__/
 *.pyo
 .DS_Store
 Thumbs.db
+*.db
 
 # Python virtual environment
 venv/
@@ -14,6 +15,8 @@ env/
 # IDE files
 .vscode/
 .idea/
+.vs/
+database/.vs/
 *.suo
 *.user
 
@@ -23,3 +26,4 @@ logs/
 
 # Node (if used)
 node_modules/
+
