@@ -110,45 +110,18 @@ class AudioAnnouncementService {
 
   // Helper to convert token string into phonetically clear Hindi text
   getHindiTokenPhrasing(tokenNum, counterNum) {
-    const prefixMap = {
-      'A': 'ए',
-      'B': 'बी',
-      'C': 'सी',
-      'D': 'डी',
-      'E': 'ई',
-      'F': 'एफ'
-    };
-
-    const digitHindiMap = {
-      '0': 'शून्य', '1': 'एक', '2': 'दो', '3': 'तीन', '4': 'चार',
-      '5': 'पांच', '6': 'छह', '7': 'सात', '8': 'आठ', '9': 'नौ'
-    };
-
+    const pMap = { A: 'ए', B: 'बी', C: 'सी', D: 'डी', E: 'ई', F: 'एफ' };
+    const dMap = ['शून्य','एक','दो','तीन','चार','पांच','छह','सात','आठ','नौ'];
     const parts = String(tokenNum).split('-');
-    const prefixChar = parts[0] ? parts[0].toUpperCase() : '';
-    const prefixHindi = prefixMap[prefixChar] || prefixChar;
+    const pChar = parts[0] ? parts[0].toUpperCase() : '';
     const numDigits = parts[1] || '';
-
-    let numHindi = '';
     const numInt = parseInt(numDigits, 10);
-    if (!isNaN(numInt) && numInt >= 100 && numInt < 200) {
-      const rem = numInt % 100;
-      if (rem === 0) {
-        numHindi = 'एक सौ';
-      } else {
-        const remDigits = String(rem).padStart(2, '0');
-        const remHindi = remDigits.split('').map(d => digitHindiMap[d] || d).join(' ');
-        numHindi = `एक सौ ${remHindi}`;
-      }
-    } else {
-      numHindi = numDigits.split('').map(d => digitHindiMap[d] || d).join(' ');
-    }
-
-    const counterHindi = digitHindiMap[String(counterNum)] || counterNum;
-
+    const numHindi = (!isNaN(numInt) && numInt >= 100 && numInt < 200) 
+      ? `एक सौ ${numInt % 100 ? String(numInt % 100).padStart(2,'0').split('').map(d => dMap[d] || d).join(' ') : ''}`.trim()
+      : numDigits.split('').map(d => dMap[d] || d).join(' ');
     return {
-      textDevanagari: `कृपया ध्यान दें। टोकन नंबर ${prefixHindi} ${numHindi}, काउंटर नंबर ${counterHindi} पर पधारें।`,
-      textPhonetic: `Kripya dhyan dein. Token number ${prefixChar} ${numDigits}, Counter number ${counterNum} par padharen.`
+      textDevanagari: `कृपया ध्यान दें। टोकन नंबर ${pMap[pChar] || pChar} ${numHindi}, काउंटर नंबर ${dMap[counterNum] || counterNum} पर पधारें।`,
+      textPhonetic: `Kripya dhyan dein. Token number ${pChar} ${numDigits}, Counter number ${counterNum} par padharen.`
     };
   }
 

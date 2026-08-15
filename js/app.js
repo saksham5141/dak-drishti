@@ -105,333 +105,167 @@ class DakDrishtiApp {
   renderLoginGateway(root) {
     let mainContentHtml = '';
 
+    const getCaptchaHtml = (prefix) => `
+      <div class="captcha-container">
+        <div class="captcha-label"><span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span></div>
+        <div class="captcha-widget-row">
+          <div class="captcha-canvas-wrapper"><canvas id="${prefix}-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas></div>
+          <div class="captcha-action-btns">
+            <button type="button" class="captcha-icon-btn" id="${prefix}-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
+            <button type="button" class="captcha-icon-btn" id="${prefix}-captcha-audio" title="Listen CAPTCHA">🔊</button>
+          </div>
+        </div>
+        <input type="text" id="${prefix}-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
+      </div>`;
+
+    const wrapCard = (backId, cardClass, title, subtitle, content) => `
+      <div class="login-single-card-wrapper">
+        ${backId ? `<a href="#" class="login-back-link" id="${backId}">← ${store.language === 'hi' ? 'वापस जाएँ' : 'Back'}</a>` : ''}
+        <div class="login-card ${cardClass}">
+          <div class="login-card-header">
+            <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
+            <div class="login-card-title">
+              <h2>${title}</h2>
+              <p>${subtitle}</p>
+            </div>
+          </div>
+          ${content}
+        </div>
+      </div>`;
+
     if (this.loginPhase === 'role-select') {
       mainContentHtml = `
         <div class="role-select-grid">
           <div class="role-select-label">${store.t('selectYourRole')}</div>
-          
           <div class="role-card role-citizen" data-role="customer">
             <div class="role-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
             <div class="role-card-info">
               <h3>${store.t('iAmCitizen')}</h3>
               <p>${store.t('citizenRoleDesc')}</p>
-              <div class="role-card-features">
-                <span class="feature-tag">E-Tokens</span>
-                <span class="feature-tag">Live Queue</span>
-              </div>
+              <div class="role-card-features"><span class="feature-tag">E-Tokens</span><span class="feature-tag">Live Queue</span></div>
             </div>
             <div class="role-card-arrow">➔</div>
           </div>
-
           <div class="role-card role-employee" data-role="employee">
             <div class="role-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
             <div class="role-card-info">
               <h3>${store.t('iAmEmployee')}</h3>
               <p>${store.t('employeeRoleDesc')}</p>
-              <div class="role-card-features">
-                <span class="feature-tag">AI Vision</span>
-                <span class="feature-tag">Digital Twin</span>
-              </div>
+              <div class="role-card-features"><span class="feature-tag">AI Vision</span><span class="feature-tag">Digital Twin</span></div>
             </div>
             <div class="role-card-arrow">➔</div>
           </div>
-        </div>
-      `;
+        </div>`;
     } else if (this.loginPhase === 'register') {
-      mainContentHtml = `
-        <div class="login-single-card-wrapper">
-          <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
-          <div class="login-card customer-card">
-            <div class="login-card-header">
-              <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-              <div class="login-card-title">
-                <h2>${store.language === 'hi' ? 'नया खाता पंजीकरण' : 'Create New Account'}</h2>
-                <p>${store.language === 'hi' ? 'डाक सेवा पोर्टल पंजीकरण' : 'Register for India Post Services'}</p>
-              </div>
-            </div>
-            <form id="user-register-form" class="login-form">
-              <div id="register-error-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
-              <div id="register-success-msg" class="login-error-msg" style="display: none; text-align: center; background: #DCFCE7; color: #15803D; border-color: #86EFAC;"></div>
-
-              <div class="form-group">
-                <label for="reg-full-name">Full Name <span class="required-star">*</span></label>
-                <input type="text" id="reg-full-name" class="form-input" placeholder="Full Name" required>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-contact">Email or Mobile Number <span class="required-star">*</span></label>
-                <input type="text" id="reg-contact" class="form-input" placeholder="Email or Mobile Number" required>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-password">Password <span class="required-star">*</span></label>
-                <input type="password" id="reg-password" class="form-input" placeholder="Password" required>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-confirm-password">Confirm Password <span class="required-star">*</span></label>
-                <input type="password" id="reg-confirm-password" class="form-input" placeholder="Confirm Password" required>
-              </div>
-
-              <div class="captcha-container">
-                <div class="captcha-label">
-                  <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
-                </div>
-                <div class="captcha-widget-row">
-                  <div class="captcha-canvas-wrapper">
-                    <canvas id="register-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
-                  </div>
-                  <div class="captcha-action-btns">
-                    <button type="button" class="captcha-icon-btn" id="register-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
-                    <button type="button" class="captcha-icon-btn" id="register-captcha-audio" title="Listen CAPTCHA">🔊</button>
-                  </div>
-                </div>
-                <input type="text" id="register-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
-              </div>
-
-              <button type="submit" class="btn btn-login">
-                ${store.language === 'hi' ? 'खाता बनाएं 📝' : 'Create Account 📝'}
-              </button>
-
-              <div style="text-align: center; margin-top: 14px;">
-                <a href="#" id="goto-login-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">
-                  ${store.language === 'hi' ? 'पहले से पंजीकृत हैं? लॉगिन करें 🚪' : 'Already have an account? Log in here 🚪'}
-                </a>
-              </div>
-            </form>
-          </div>
-        </div>
-      `;
+      mainContentHtml = wrapCard(
+        'back-to-roles',
+        'customer-card',
+        store.language === 'hi' ? 'नया खाता पंजीकरण' : 'Create New Account',
+        store.language === 'hi' ? 'डाक सेवा पोर्टल पंजीकरण' : 'Register for India Post Services',
+        `<form id="user-register-form" class="login-form">
+          <div id="register-error-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
+          <div id="register-success-msg" class="login-error-msg" style="display: none; text-align: center; background: #DCFCE7; color: #15803D; border-color: #86EFAC;"></div>
+          <div class="form-group"><label for="reg-full-name">Full Name <span class="required-star">*</span></label><input type="text" id="reg-full-name" class="form-input" placeholder="Full Name" required></div>
+          <div class="form-group"><label for="reg-contact">Email or Mobile Number <span class="required-star">*</span></label><input type="text" id="reg-contact" class="form-input" placeholder="Email or Mobile Number" required></div>
+          <div class="form-group"><label for="reg-password">Password <span class="required-star">*</span></label><input type="password" id="reg-password" class="form-input" placeholder="Password" required></div>
+          <div class="form-group"><label for="reg-confirm-password">Confirm Password <span class="required-star">*</span></label><input type="password" id="reg-confirm-password" class="form-input" placeholder="Confirm Password" required></div>
+          ${getCaptchaHtml('register')}
+          <button type="submit" class="btn btn-login">${store.language === 'hi' ? 'खाता बनाएं 📝' : 'Create Account 📝'}</button>
+          <div style="text-align: center; margin-top: 14px;"><a href="#" id="goto-login-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">${store.language === 'hi' ? 'पहले से पंजीकृत हैं? लॉगिन करें 🚪' : 'Already have an account? Log in here 🚪'}</a></div>
+        </form>`
+      );
     } else if (this.loginPhase === 'credentials') {
       if (this.selectedRole === 'customer') {
-        mainContentHtml = `
-          <div class="login-single-card-wrapper">
-            <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
-            <div class="login-card customer-card">
-              <div class="login-card-header">
-                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-                <div class="login-card-title">
-                  <h2>${store.t('citizenPortal')}</h2>
-                  <p>Book E-Tokens, check queue sizes & leave feedback</p>
-                </div>
+        mainContentHtml = wrapCard(
+          'back-to-roles',
+          'customer-card',
+          store.t('citizenPortal'),
+          'Book E-Tokens, check queue sizes & leave feedback',
+          `<form id="citizen-login-form" class="login-form">
+            <div id="citizen-login-error" class="login-error-msg" style="display: none; text-align: center;"></div>
+            <div class="form-group"><label for="citizen-name">${store.t('citizenName')} <span class="required-star">*</span></label><input type="text" id="citizen-name" class="form-input" placeholder="Full Name" required></div>
+            <div class="form-group"><label for="citizen-mobile">Email or Mobile Number <span class="required-star">*</span></label><input type="text" id="citizen-mobile" class="form-input" placeholder="Email or Mobile Number" required></div>
+            <div class="form-group"><label style="font-weight: 700; font-size: 0.85rem;">Select OTP Delivery Method</label>
+              <div style="display: flex; gap: 8px; margin-top: 5px;">
+                <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;"><input type="radio" name="otpChannelSelect" value="sms" checked> 📱 SMS</label>
+                <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;"><input type="radio" name="otpChannelSelect" value="email"> 📧 Email</label>
+                <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;"><input type="radio" name="otpChannelSelect" value="voice"> 📞 Voice Call</label>
               </div>
-              <form id="citizen-login-form" class="login-form">
-                <div id="citizen-login-error" class="login-error-msg" style="display: none; text-align: center;"></div>
-                <div class="form-group">
-                  <label for="citizen-name">${store.t('citizenName')} <span class="required-star">*</span></label>
-                  <input type="text" id="citizen-name" class="form-input" placeholder="Full Name" required>
-                </div>
-                <div class="form-group">
-                  <label for="citizen-mobile">Email or Mobile Number <span class="required-star">*</span></label>
-                  <input type="text" id="citizen-mobile" class="form-input" placeholder="Email or Mobile Number" required>
-                </div>
-                <div class="form-group">
-                  <label style="font-weight: 700; font-size: 0.85rem;">Select OTP Delivery Method</label>
-                  <div style="display: flex; gap: 8px; margin-top: 5px;">
-                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                      <input type="radio" name="otpChannelSelect" value="sms" checked> 📱 SMS
-                    </label>
-                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                      <input type="radio" name="otpChannelSelect" value="email"> 📧 Email
-                    </label>
-                    <label style="flex: 1; text-align: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 4px; cursor: pointer; background: #FFFFFF; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                      <input type="radio" name="otpChannelSelect" value="voice"> 📞 Voice Call
-                    </label>
-                  </div>
-                </div>
-
-                <div class="captcha-container">
-                  <div class="captcha-label">
-                    <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
-                  </div>
-                  <div class="captcha-widget-row">
-                    <div class="captcha-canvas-wrapper">
-                      <canvas id="citizen-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
-                    </div>
-                    <div class="captcha-action-btns">
-                      <button type="button" class="captcha-icon-btn" id="citizen-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
-                      <button type="button" class="captcha-icon-btn" id="citizen-captcha-audio" title="Listen CAPTCHA">🔊</button>
-                    </div>
-                  </div>
-                  <input type="text" id="citizen-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
-                </div>
-
-                <button type="submit" class="btn btn-login">
-                  ${store.t('enterCitizenPortal')}
-                </button>
-                <div style="text-align: center; margin-top: 14px;">
-                  <a href="#" id="goto-register-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">
-                    ${store.language === 'hi' ? 'नया खाता? यहाँ पंजीकरण करें 📝' : 'Don\'t have an account? Register here 📝'}
-                  </a>
-                </div>
-              </form>
             </div>
-          </div>
-        `;
+            ${getCaptchaHtml('citizen')}
+            <button type="submit" class="btn btn-login">${store.t('enterCitizenPortal')}</button>
+            <div style="text-align: center; margin-top: 14px;"><a href="#" id="goto-register-link" style="color: var(--post-red-dark); font-weight: 700; font-size: 0.88rem; text-decoration: none;">${store.language === 'hi' ? 'नया खाता? यहाँ पंजीकरण करें 📝' : "Don't have an account? Register here 📝"}</a></div>
+          </form>`
+        );
       } else {
-        mainContentHtml = `
-          <div class="login-single-card-wrapper">
-            <a href="#" class="login-back-link" id="back-to-roles">← Back</a>
-            <div class="login-card employee-card">
-              <div class="login-card-header">
-                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-                <div class="login-card-title">
-                  <h2>${store.t('employeeConsole')}</h2>
-                  <p>Access AI Edge Vision, digital twin & command center</p>
-                </div>
-              </div>
-
-              <!-- Quick Demo Credentials Banner -->
-              <div style="background: rgba(211, 47, 47, 0.06); border: 1px dashed var(--post-red); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-primary);">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
-                  <strong style="color: var(--post-red-dark); font-weight: 700;">🔑 Demo Credentials:</strong>
-                  <button type="button" id="autofill-demo-emp-btn" style="background: var(--post-red); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
-                    ⚡ Auto-fill Demo Login
-                  </button>
-                </div>
-                <div>User ID: <strong>admin</strong> | Password: <strong>admin123</strong></div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px;">(MFA OTP: enter any 6-digit pin like <strong>123456</strong>)</div>
-              </div>
-
-              <form id="employee-login-form" class="login-form">
-                <div id="employee-login-error" class="login-error-msg"></div>
-                <div class="form-group">
-                  <label for="employee-id">Email, Mobile or Staff ID <span class="required-star">*</span></label>
-                  <input type="text" id="employee-id" class="form-input" placeholder="e.g. admin or employee email" required>
-                </div>
-                <div class="form-group">
-                  <label for="employee-password">${store.t('password')} <span class="required-star">*</span></label>
-                  <input type="password" id="employee-password" class="form-input" placeholder="Password" required>
-                  <div style="text-align: right; margin-top: 4px;">
-                    <a href="#" id="employee-forgot-pin-link" style="font-size: 0.78rem; color: var(--post-red); font-weight: 600; text-decoration: none;">${store.t('forgotPin')}</a>
-                  </div>
-                </div>
-
-                <div class="captcha-container">
-                  <div class="captcha-label">
-                    <span>🛡️ Security Verification (CAPTCHA) <span class="required-star">*</span></span>
-                  </div>
-                  <div class="captcha-widget-row">
-                    <div class="captcha-canvas-wrapper">
-                      <canvas id="employee-captcha-canvas" class="captcha-canvas" width="170" height="48"></canvas>
-                    </div>
-                    <div class="captcha-action-btns">
-                      <button type="button" class="captcha-icon-btn" id="employee-captcha-refresh" title="Refresh CAPTCHA">🔄</button>
-                      <button type="button" class="captcha-icon-btn" id="employee-captcha-audio" title="Listen CAPTCHA">🔊</button>
-                    </div>
-                  </div>
-                  <input type="text" id="employee-captcha-input" class="form-input captcha-input" placeholder="Enter CAPTCHA Code" required autocomplete="off">
-                </div>
-
-                <button type="submit" class="btn btn-login">
-                  ${store.t('loginOperatorConsole')}
-                </button>
-              </form>
+        mainContentHtml = wrapCard(
+          'back-to-roles',
+          'employee-card',
+          store.t('employeeConsole'),
+          'Access AI Edge Vision, digital twin & command center',
+          `<div style="background: rgba(211, 47, 47, 0.06); border: 1px dashed var(--post-red); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-primary);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+              <strong style="color: var(--post-red-dark); font-weight: 700;">🔑 Demo Credentials:</strong>
+              <button type="button" id="autofill-demo-emp-btn" style="background: var(--post-red); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">⚡ Auto-fill Demo Login</button>
             </div>
+            <div>User ID: <strong>admin</strong> | Password: <strong>admin123</strong></div>
           </div>
-        `;
+          <form id="employee-login-form" class="login-form">
+            <div id="employee-login-error" class="login-error-msg"></div>
+            <div class="form-group"><label for="employee-id">Email, Mobile or Staff ID <span class="required-star">*</span></label><input type="text" id="employee-id" class="form-input" placeholder="e.g. admin or employee email" required></div>
+            <div class="form-group"><label for="employee-password">${store.t('password')} <span class="required-star">*</span></label><input type="password" id="employee-password" class="form-input" placeholder="Password" required>
+              <div style="text-align: right; margin-top: 4px;"><a href="#" id="employee-forgot-pin-link" style="font-size: 0.78rem; color: var(--post-red); font-weight: 600; text-decoration: none;">${store.t('forgotPin')}</a></div>
+            </div>
+            ${getCaptchaHtml('employee')}
+            <button type="submit" class="btn btn-login">${store.t('loginOperatorConsole')}</button>
+          </form>`
+        );
       }
     } else if (this.loginPhase === 'forgot-pin') {
-      mainContentHtml = `
-        <div class="login-single-card-wrapper">
-          <a href="#" class="login-back-link" id="back-to-credentials">← ${store.language === 'hi' ? 'लॉगिन पर वापस जाएँ' : 'Back to Login'}</a>
-          <div class="login-card employee-card">
-            <div class="login-card-header">
-              <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-              <div class="login-card-title">
-                <h2>${store.t('resetPinTitle')}</h2>
-                <p>${store.t('resetPinDesc')}</p>
-              </div>
-            </div>
-            <form id="employee-forgot-pin-form" class="login-form">
-              <div id="forgot-pin-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
-              <div class="form-group">
-                <label for="reset-staff-id">Email or Mobile Number <span class="required-star">*</span></label>
-                <input type="text" id="reset-staff-id" class="form-input" placeholder="Email or Mobile Number" required>
-              </div>
-              <div class="form-group">
-                <label for="reset-contact">${store.t('registeredEmailMobile')} <span class="required-star">*</span></label>
-                <input type="text" id="reset-contact" class="form-input" placeholder="Email or Mobile Number" required>
-              </div>
-              <button type="submit" class="btn btn-login">
-                ${store.t('sendResetLink')}
-              </button>
-            </form>
-          </div>
-        </div>
-      `;
+      mainContentHtml = wrapCard(
+        'back-to-credentials',
+        'employee-card',
+        store.t('resetPinTitle'),
+        store.t('resetPinDesc'),
+        `<form id="employee-forgot-pin-form" class="login-form">
+          <div id="forgot-pin-msg" class="login-error-msg" style="display: none; text-align: center;"></div>
+          <div class="form-group"><label for="reset-staff-id">Email or Mobile Number <span class="required-star">*</span></label><input type="text" id="reset-staff-id" class="form-input" placeholder="Email or Mobile Number" required></div>
+          <div class="form-group"><label for="reset-contact">${store.t('registeredEmailMobile')} <span class="required-star">*</span></label><input type="text" id="reset-contact" class="form-input" placeholder="Email or Mobile Number" required></div>
+          <button type="submit" class="btn btn-login">${store.t('sendResetLink')}</button>
+        </form>`
+      );
     } else if (this.loginPhase === 'otp') {
       if (this.selectedRole === 'customer') {
         const maskedPhone = this.tempCitizenData?.mobile ? (this.tempCitizenData.mobile.includes('@') ? this.tempCitizenData.mobile : '+91 XXXXX' + this.tempCitizenData.mobile.slice(-4)) : 'user@domain.com';
         const channelLabel = this.tempCitizenData?.channel === 'email' ? '📧 Email OTP' : this.tempCitizenData?.channel === 'voice' ? '📞 Voice Call OTP' : '📱 SMS OTP';
         const checkLabel = this.tempCitizenData?.channel === 'email' ? 'Email Inbox' : this.tempCitizenData?.channel === 'voice' ? 'Phone for incoming Voice Call' : 'SMS Messages';
-        mainContentHtml = `
-          <div class="login-single-card-wrapper">
-            <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
-            <div class="login-card customer-card">
-              <div class="login-card-header">
-                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-                <div class="login-card-title">
-                  <h2>${store.language === 'hi' ? 'नागरिक सत्यापन' : 'Citizen Verification'}</h2>
-                  <p>${store.language === 'hi' ? 'सुरक्षित प्रमाणीकरण' : 'Secure Authentication'}</p>
-                </div>
-              </div>
-              <div class="otp-sent-info">
-                <span>${channelLabel} dispatched to:</span><br/>
-                <span class="otp-phone-mask">${maskedPhone}</span>
-                <div style="font-size: 0.78rem; margin-top: 5px; color: var(--color-success); font-weight: 600;">
-                  📲 Please check your ${checkLabel} for the 6-digit OTP code
-                </div>
-              </div>
-              <form id="citizen-otp-form" class="login-form" style="margin-top: 10px;">
-                <div id="citizen-otp-error" class="login-error-msg" style="text-align: center;"></div>
-                <div class="form-group">
-                  <input type="text" id="citizen-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
-                </div>
-                <button type="submit" class="btn btn-login">
-                  ${store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪'}
-                </button>
-                <div class="otp-actions-row">
-                  <button type="button" id="citizen-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.customer > 0 ? 'disabled' : ''}>
-                    ${this.resendTimer.customer > 0 ? `Resend OTP (${this.resendTimer.customer}s)` : 'Resend OTP 🔄'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        `;
+        mainContentHtml = wrapCard(
+          'back-to-credentials',
+          'customer-card',
+          store.language === 'hi' ? 'नागरिक सत्यापन' : 'Citizen Verification',
+          store.language === 'hi' ? 'सुरक्षित प्रमाणीकरण' : 'Secure Authentication',
+          `<div class="otp-sent-info"><span>${channelLabel} dispatched to:</span><br/><span class="otp-phone-mask">${maskedPhone}</span><div style="font-size: 0.78rem; margin-top: 5px; color: var(--color-success); font-weight: 600;">📲 Please check your ${checkLabel} for the 6-digit OTP code</div></div>
+          <form id="citizen-otp-form" class="login-form" style="margin-top: 10px;">
+            <div id="citizen-otp-error" class="login-error-msg" style="text-align: center;"></div>
+            <div class="form-group"><input type="text" id="citizen-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></div>
+            <button type="submit" class="btn btn-login">${store.language === 'hi' ? 'सत्यापित करें और लॉग इन करें 🚪' : 'Verify & Login 🚪'}</button>
+            <div class="otp-actions-row"><button type="button" id="citizen-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.customer > 0 ? 'disabled' : ''}>${this.resendTimer.customer > 0 ? `Resend OTP (${this.resendTimer.customer}s)` : 'Resend OTP 🔄'}</button></div>
+          </form>`
+        );
       } else {
-        mainContentHtml = `
-          <div class="login-single-card-wrapper">
-            <a href="#" class="login-back-link" id="back-to-credentials">← Back</a>
-            <div class="login-card employee-card">
-              <div class="login-card-header">
-                <div class="login-card-icon"><img src="images/india_post_logo.svg" alt="India Post Logo"></div>
-                <div class="login-card-title">
-                  <h2>MFA Verification</h2>
-                  <p>SecurMail Authentication</p>
-                </div>
-              </div>
-              <div class="otp-sent-info">
-                ${store.language === 'hi' ? 'सुरक्षा उपकरण या SecurMail द्वारा उत्पन्न पिन दर्ज करें।' : 'Enter the 6-digit pin from your security device.'}
-              </div>
-              <form id="employee-otp-form" class="login-form" style="margin-top: 10px;">
-                <div id="employee-otp-error" class="login-error-msg" style="text-align: center;"></div>
-                <div class="form-group">
-                  <input type="text" id="employee-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
-                </div>
-                <button type="submit" class="btn btn-login">
-                  ${store.language === 'hi' ? 'सत्यापित करें और प्रवेश करें 🖥️' : 'Verify & Enter Console 🖥️'}
-                </button>
-                <div class="otp-actions-row">
-                  <button type="button" id="employee-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.employee > 0 ? 'disabled' : ''}>
-                    ${this.resendTimer.employee > 0 ? `Resend PIN (${this.resendTimer.employee}s)` : 'Resend PIN 🔄'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        `;
+        mainContentHtml = wrapCard(
+          'back-to-credentials',
+          'employee-card',
+          'MFA Verification',
+          'SecurMail Authentication',
+          `<div class="otp-sent-info">${store.language === 'hi' ? 'सुरक्षा उपकरण या SecurMail द्वारा उत्पन्न पिन दर्ज करें।' : 'Enter the 6-digit pin from your security device.'}</div>
+          <form id="employee-otp-form" class="login-form" style="margin-top: 10px;">
+            <div id="employee-otp-error" class="login-error-msg" style="text-align: center;"></div>
+            <div class="form-group"><input type="text" id="employee-otp" class="form-input otp-input-field" placeholder="••••••" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></div>
+            <button type="submit" class="btn btn-login">${store.language === 'hi' ? 'सत्यापित करें और प्रवेश करें 🖥️' : 'Verify & Enter Console 🖥️'}</button>
+            <div class="otp-actions-row"><button type="button" id="employee-resend-btn" class="btn btn-secondary btn-sm" ${this.resendTimer.employee > 0 ? 'disabled' : ''}>${this.resendTimer.employee > 0 ? `Resend PIN (${this.resendTimer.employee}s)` : 'Resend PIN 🔄'}</button></div>
+          </form>`
+        );
       }
     }
 
