@@ -449,7 +449,9 @@ class DakDrishtiApp {
         </div>
 
         <div class="login-brand-wrapper">
-          <div class="login-brand-logo">📮</div>
+          <div class="login-brand-logo">
+            <img src="images/india_post_logo.svg" alt="India Post Logo">
+          </div>
           <h1>${store.language === 'hi' ? 'भारतीय डाक | डाक सेवा पोर्टल' : 'Department of Posts | India Post'}</h1>
           <p>${store.t('subTitle')}</p>
           <p style="font-size: 0.82rem; color: var(--post-red-dark); font-weight: 700; margin-top: 4px;">${store.t('ministryOfCom')}</p>
@@ -470,7 +472,9 @@ class DakDrishtiApp {
         <!-- Top App Bar -->
         <header class="top-header">
           <div class="brand-section">
-            <div class="brand-logo">📮</div>
+            <div class="brand-logo">
+              <img src="images/india_post_logo.svg" alt="India Post Logo">
+            </div>
             <div class="brand-title">
               <h1>
                 भारतीय डाक <span style="font-weight: 400; font-size: 0.95rem; color: #FFFFFF;">| INDIA POST</span>
@@ -528,7 +532,9 @@ class DakDrishtiApp {
         <!-- Top App Bar -->
         <header class="top-header">
           <div class="brand-section">
-            <div class="brand-logo">📮</div>
+            <div class="brand-logo">
+              <img src="images/india_post_logo.svg" alt="India Post Logo">
+            </div>
             <div class="brand-title">
               <h1>
                 भारतीय डाक <span style="font-weight: 400; font-size: 0.95rem; color: #FFFFFF;">| INDIA POST</span>

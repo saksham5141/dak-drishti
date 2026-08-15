@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" width="100%" height="100%">
+  <!-- Background transparent -->
+  <style>
+    .hindi-title { font-family: 'Noto Sans Devanagari', 'Mangal', 'Segoe UI', serif; font-weight: 700; fill: #C4161C; font-size: 42px; }
+    .hindi-motto { font-family: 'Noto Sans Devanagari', 'Mangal', 'Segoe UI', serif; font-weight: 500; fill: #A51C21; font-size: 28px; }
+    .english-title { font-family: 'Georgia', 'Times New Roman', serif; font-weight: 600; fill: #C4161C; font-size: 48px; }
+  </style>
+
+  <!-- Top Hindi Text -->
+  <text x="72" y="44" class="hindi-title">भारतीय डाक</text>
+  <text x="72" y="78" class="hindi-motto">डाक सेवा–जन सेवा</text>
+
+  <!-- Main Red Rect Box -->
+  <rect x="72" y="92" width="304" height="178" fill="#C4161C" rx="2" />
+
+  <!-- Dynamic Yellow Postal Wings (3 Sweeping Waves) -->
+  <!-- Top Wing -->
+  <path d="M 0 148 Q 110 130 180 182 Q 250 234 490 42 Q 330 100 240 188 Q 170 246 80 134 Z" fill="#FFC107" />
+  
+  <!-- Middle Wing -->
+  <path d="M 52 134 Q 120 120 190 174 Q 248 214 414 62 Q 290 130 220 188 Q 150 230 100 130 Z" fill="#FFC107" />
+
+  <!-- Bottom Wing -->
+  <path d="M 104 126 Q 140 115 190 156 Q 230 184 340 92 Q 250 140 196 172 Q 145 196 128 126 Z" fill="#FFD54F" />
+
+  <!-- Bottom English Text -->
+  <text x="196" y="306" class="english-title">India Post</text>
+</svg>

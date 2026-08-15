@@ -158,18 +158,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .brand-logo {
-  width: 44px;
-  height: 44px;
-  background: var(--post-gold);
-  border: 2px solid #FFFFFF;
-  border-radius: var(--radius-md);
+  width: 52px;
+  height: 52px;
+  background: #FFFFFF;
+  border: 2px solid var(--post-gold);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--post-red-dark);
-  font-size: 1.5rem;
-  font-weight: 800;
+  padding: 4px;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand-title h1 {
@@ -469,18 +474,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .login-brand-logo {
-  width: 64px;
-  height: 64px;
-  background: var(--post-red);
-  border: 3px solid var(--post-gold);
-  border-radius: var(--radius-md);
+  width: 110px;
+  height: 70px;
+  background: #FFFFFF;
+  border: 2px solid var(--post-gold);
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
-  font-size: 2.2rem;
+  padding: 6px 10px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-md);
+}
+
+.login-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .login-brand-wrapper h1 {
